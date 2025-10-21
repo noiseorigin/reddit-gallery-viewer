@@ -3,25 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Free Reddit gallery viewer tool. Browse subreddits as beautiful image galleries with dynamic themes. View top images from any subreddit easily." />
-    <meta name="keywords" content="reddit gallery, reddit image viewer, subreddit gallery viewer, reddit tool" />
+    <meta name="description" content="Free Reddit gallery viewer - Browse any subreddit as a beautiful image gallery. View top photos, memes, and artwork from Reddit with dynamic color themes. No app needed!" />
+    <meta name="keywords" content="reddit gallery viewer, reddit image gallery, subreddit gallery, free reddit tool, reddit browser, reddit photo gallery, reddit top posts, image viewer" />
     <meta name="author" content="Reddit Gallery Viewer" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
 
     <!-- Open Graph for Social Sharing -->
-    <meta property="og:title" content="Reddit Gallery Viewer - Browse Subreddits as Image Galleries" />
-    <meta property="og:description" content="Free tool to view Reddit subreddits as beautiful image galleries. Browse top images with dynamic color themes." />
+    <meta property="og:title" content="Reddit Gallery Viewer - Free Online Gallery for Any Subreddit" />
+    <meta property="og:description" content="Browse any Reddit subreddit as a beautiful image gallery. Free, fast, and no app needed. Discover top photos from photography, nature, art, and more!" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://your-domain.vercel.app" />
+    <meta property="og:url" content="https://reddit-gallery-viewer.vercel.app/" />
+    <meta property="og:image" content="https://reddit-gallery-viewer.vercel.app/og-image.png" />
+    <meta property="og:site_name" content="Reddit Gallery Viewer" />
     <meta name="theme-color" content="#FF4500" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reddit Gallery Viewer" />
-    <meta name="twitter:description" content="Browse Reddit subreddits as beautiful image galleries" />
+    <meta name="twitter:title" content="Reddit Gallery Viewer - Browse Subreddits as Image Galleries" />
+    <meta name="twitter:description" content="Free online tool to view Reddit subreddits as beautiful image galleries with dynamic color themes." />
+    <meta name="twitter:image" content="https://reddit-gallery-viewer.vercel.app/og-image.png" />
 
     <!-- Canonical Tag (防止重复内容问题) -->
-    <link rel="canonical" href="https://your-domain.vercel.app" />
+    <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
 
     <!-- Preconnect to external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,14 +43,17 @@
     <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
      crossorigin="anonymous"></script> -->
 
-    <!-- Google Analytics (commented out - to be enabled later) -->
-    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <!-- Google Analytics (to be enabled after getting measurement ID) -->
+    <!--
+    Uncomment below after getting your Google Analytics ID from https://analytics.google.com/
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YOUR-MEASUREMENT-ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
-    </script> -->
+      gtag('config', 'G-YOUR-MEASUREMENT-ID');
+    </script>
+    -->
 
     <!-- JSON-LD Structured Data for SEO -->
     <script type="application/ld+json">
@@ -55,9 +61,10 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Reddit Gallery Viewer",
-      "description": "Free tool to browse Reddit subreddits as beautiful image galleries with dynamic themes",
-      "url": "https://your-domain.vercel.app",
+      "description": "Free online tool to browse any Reddit subreddit as a beautiful image gallery with dynamic color themes",
+      "url": "https://reddit-gallery-viewer.vercel.app/",
       "applicationCategory": "UtilityApplication",
+      "image": "https://reddit-gallery-viewer.vercel.app/og-image.png",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -66,8 +73,10 @@
       "author": {
         "@type": "Organization",
         "name": "Reddit Gallery Viewer",
-        "url": "https://your-domain.vercel.app"
-      }
+        "url": "https://reddit-gallery-viewer.vercel.app/"
+      },
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript"
     }
     </script>
 

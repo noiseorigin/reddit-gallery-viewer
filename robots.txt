@@ -18,7 +18,7 @@ Allow: /
 Crawl-delay: 1
 
 # 指向 Sitemap
-Sitemap: https://your-domain.vercel.app/sitemap.xml
+Sitemap: https://reddit-gallery-viewer.vercel.app/sitemap.xml
 
 # 禁止访问的路径（示例，如果有的话）
 # Disallow: /admin/
