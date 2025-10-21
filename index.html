@@ -169,39 +169,65 @@
       </header>
 
       <!-- Custom Subreddit Input -->
-      <div class="flex justify-center mb-6">
+      <div class="flex justify-center mb-8">
         <div class="w-full max-w-md">
-          <input
-            id="custom-subreddit-input"
-            type="text"
-            placeholder="Enter subreddit name or Reddit link (e.g., houseplants or https://reddit.com/r/houseplants)"
-            class="w-full px-4 py-2 border-2 rounded-lg focus:outline-none text-gray-800"
-            style="border-color: #CCCCCC; color: #1a1a1b;"
-          />
-          <button
-            id="custom-subreddit-btn"
-            class="w-full mt-2 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-            style="background-color: #FF4500; hover: #FF6D00;"
-          >
-            Load Subreddit
-          </button>
+          <label class="block text-sm text-gray-600 mb-2" style="color: #666;">
+            🔍 Search for any Subreddit
+          </label>
+          <div class="flex gap-2">
+            <input
+              id="custom-subreddit-input"
+              type="text"
+              placeholder="e.g., photography, MostBeautiful..."
+              class="flex-1 px-4 py-2 border-2 rounded-lg focus:outline-none text-gray-800"
+              style="border-color: #CCCCCC; color: #1a1a1b;"
+            />
+            <button
+              id="custom-subreddit-btn"
+              class="px-6 text-white font-semibold rounded-lg transition-colors"
+              style="background-color: #FF4500;"
+              title="Press Enter to search"
+            >
+              Go
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2" style="color: #999;">
+            💡 Tip: Search by name, URL, or r/name format
+          </p>
         </div>
       </div>
 
-      <!-- Subreddit Selector -->
-      <div
-        id="subreddit-selector"
-        class="flex flex-wrap justify-center items-center gap-3 md:gap-4 mb-4"
-      >
-        <!-- Subreddit buttons will be dynamically inserted here -->
+      <!-- Subreddit Selector - Popular Subreddits -->
+      <div class="mb-6">
+        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888;">Popular Subreddits</p>
+        <div
+          id="subreddit-selector"
+          class="flex flex-wrap justify-center items-center gap-2 md:gap-3 mb-4"
+        >
+          <!-- Subreddit buttons will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <!-- Search History - Recently Viewed -->
+      <div id="history-container" class="mb-6 hidden">
+        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888;">Recently Viewed</p>
+        <div
+          id="history-selector"
+          class="flex flex-wrap justify-center items-center gap-2 md:gap-3 mb-4"
+        >
+          <!-- Search history buttons will be dynamically inserted here -->
+        </div>
       </div>
 
       <!-- Time Filter -->
-      <div
-        id="time-filter-selector"
-        class="flex flex-wrap justify-center items-center gap-3 md:gap-4 mb-8"
-      >
-        <!-- Time filter buttons will be dynamically inserted here -->
+      <div class="mb-8">
+        <p class="text-center text-sm text-gray-500 mb-3" style="color: #888;">📅 Time Period</p>
+        <div
+          id="time-filter-selector"
+          class="flex flex-wrap justify-center items-center gap-2 md:gap-3"
+        >
+          <!-- Time filter buttons will be dynamically inserted here -->
+        </div>
       </div>
 
       <!-- Loading Indicator -->
@@ -355,14 +381,19 @@
       const imageRetryMap = new Map(); // Track retry attempts for each image
 
       const subreddits = [
-        { name: "houseplants", displayName: "Houseplants" },
-        { name: "SavageGarden", displayName: "Carnivorous Plants" },
+        { name: "photography", displayName: "📸 Photography" },
+        { name: "EarthPorn", displayName: "🌍 Nature" },
+        { name: "CatsStandingUp", displayName: "🐱 Cats" },
+        { name: "InteriorDesign", displayName: "🏠 Interior Design" },
+        { name: "Art", displayName: "🎨 Art" },
+        { name: "FoodPorn", displayName: "🍕 Food" },
+        { name: "houseplants", displayName: "🌱 Houseplants" },
       ];
 
       const timeFilters = [
-        { name: "day", displayName: "Today" },
-        { name: "week", displayName: "This Week" },
-        { name: "month", displayName: "This Month" },
+        { name: "day", displayName: "📆 Today" },
+        { name: "week", displayName: "📅 This Week" },
+        { name: "month", displayName: "📊 This Month" },
       ];
 
       let currentSubreddit = subreddits[0].name;
@@ -371,6 +402,35 @@
       // API 缓存机制
       const apiCache = new Map();
       const CACHE_DURATION = 1000 * 60 * 5; // 5 分钟缓存
+
+      // 搜索历史缓存
+      const SEARCH_HISTORY_KEY = "reddit_gallery_history";
+      const MAX_HISTORY = 10;
+
+      function getSearchHistory() {
+        try {
+          const history = localStorage.getItem(SEARCH_HISTORY_KEY);
+          return history ? JSON.parse(history) : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function addToSearchHistory(subreddit) {
+        try {
+          let history = getSearchHistory();
+          // 移除重复项
+          history = history.filter(item => item.name !== subreddit.name);
+          // 添加到开头
+          history.unshift(subreddit);
+          // 限制历史记录数量
+          history = history.slice(0, MAX_HISTORY);
+          // 保存到 localStorage
+          localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+        } catch (e) {
+          console.warn("无法保存搜索历史:", e);
+        }
+      }
 
       const buildApiUrl = (subreddit, time) =>
         `https://www.reddit.com/r/${subreddit}/top/.json?t=${time}&limit=100`;
@@ -877,10 +937,13 @@
         imageRetryMap.clear(); // Clear retry map for new gallery
         loadingIndicator.classList.remove("hidden");
         errorMessage.classList.add("hidden");
-        pageTitle.textContent = `Reddit ${
-          subreddits.find((s) => s.name === subreddit)?.displayName || subreddit
-        } Gallery`;
+
+        const displayName = subreddits.find((s) => s.name === subreddit)?.displayName || subreddit;
+        pageTitle.textContent = `Reddit ${displayName} Gallery`;
         pageSubtitle.textContent = `Top images from /r/${subreddit} (${timeFilter.displayName})`;
+
+        // 保存到搜索历史
+        addToSearchHistory({ name: subreddit, displayName: displayName });
 
         // Fetch and apply subreddit theme
         const theme = await fetchSubredditTheme(subreddit);
@@ -983,6 +1046,41 @@
         activeButton.style.color = "white";
       }
 
+      function renderSearchHistory() {
+        const history = getSearchHistory();
+        const historyContainer = document.getElementById("history-container");
+        const historySelector = document.getElementById("history-selector");
+
+        if (history.length === 0) {
+          historyContainer.classList.add("hidden");
+          return;
+        }
+
+        historyContainer.classList.remove("hidden");
+        historySelector.innerHTML = "";
+
+        history.forEach((item) => {
+          const button = document.createElement("button");
+          button.className =
+            "px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200";
+          button.style.color = "#FF4500";
+          button.style.borderRadius = "6px";
+          button.textContent = `${item.displayName}`;
+          button.title = `/r/${item.name}`;
+          button.addEventListener("click", () => {
+            currentSubreddit = item.name;
+            // 更新按钮状态
+            document.querySelectorAll("#subreddit-selector button").forEach((btn) => {
+              btn.classList.remove("shadow-md");
+              btn.style.backgroundColor = "white";
+              btn.style.color = "#FF4500";
+            });
+            fetchImages(currentSubreddit, currentTimeFilter);
+          });
+          historySelector.appendChild(button);
+        });
+      }
+
       // Handle custom subreddit input
       function handleCustomSubreddit() {
         const input = customSubredditInput.value;
@@ -1011,6 +1109,9 @@
         });
 
         fetchImages(currentSubreddit, currentTimeFilter);
+
+        // 更新搜索历史显示
+        setTimeout(() => renderSearchHistory(), 100);
       }
 
       function initializeApp() {
@@ -1067,6 +1168,9 @@
         fetchSubredditTheme(currentSubreddit).then((theme) => {
           applyTheme(theme);
         });
+
+        // 渲染搜索历史
+        renderSearchHistory();
 
         fetchImages(currentSubreddit, currentTimeFilter);
       }

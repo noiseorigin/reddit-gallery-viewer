@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Disallow:
+
+# 允许 Google 爬虫访问所有资源
+User-agent: Googlebot
+Allow: /
+
+# 允许其他常见爬虫
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# 爬虫延迟（毫秒）
+Crawl-delay: 1
+
+# 指向 Sitemap
+Sitemap: https://your-domain.vercel.app/sitemap.xml
+
+# 禁止访问的路径（示例，如果有的话）
+# Disallow: /admin/
+# Disallow: /private/
