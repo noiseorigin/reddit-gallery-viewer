@@ -520,8 +520,33 @@
             <p class="mt-3 text-gray-700 leading-relaxed">
               If an image fails to load, a retry button will appear. Click it to try
               loading the image again. Some images may fail due to external hosting
-              restrictions, but our automatic retry system (up to 3 attempts) handles
-              most cases.
+              restrictions, but our automatic retry system (up to 5 attempts) handles
+              most cases. For mobile users experiencing persistent issues, try:
+              <ul class="mt-2 ml-4 space-y-1" style="list-style-type: disc;">
+                <li>Refreshing the page</li>
+                <li>Switching between different time periods</li>
+                <li>Checking your mobile data connection quality</li>
+                <li>Clearing browser cache and reloading</li>
+              </ul>
+            </p>
+          </details>
+
+          <details
+            class="border-2 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            style="border-color: #ff6d00"
+          >
+            <summary class="font-semibold text-lg" style="color: #ff4500">
+              How to debug mobile loading issues?
+            </summary>
+            <p class="mt-3 text-gray-700 leading-relaxed">
+              If you're experiencing image loading issues on mobile, you can enable debug mode to see detailed logs:
+              <ol class="mt-2 ml-4 space-y-1" style="list-style-type: decimal;">
+                <li>Open your browser's Developer Console (DevTools)</li>
+                <li>In the Console tab, type: <code style="background-color: #f0f0f0; padding: 2px 6px; border-radius: 3px;">enableRGVDebug()</code></li>
+                <li>Press Enter to enable detailed logging</li>
+                <li>Try loading images and watch the console for detailed information about what's happening</li>
+              </ol>
+              Debug logs will show image load status, retry attempts, timeouts, and any errors encountered. Share these logs if you need help troubleshooting.
             </p>
           </details>
         </div>
@@ -843,7 +868,16 @@
       }
 
       function sanitizeRedditImageUrl(url) {
-        return url ? url.replace(/&amp;/g, "&") : "";
+        if (!url) return "";
+        // Decode HTML entities and replace escaped ampersands
+        let decoded = url.replace(/&amp;/g, "&");
+        // Add cache-busting parameter to prevent stale image URLs from Reddit
+        // Reddit image URLs expire after ~24 hours, cache-busting helps with retries
+        if (decoded.includes("reddit.com") || decoded.includes("redditmedia.com")) {
+          const separator = decoded.includes("?") ? "&" : "?";
+          decoded += separator + "t=" + Date.now();
+        }
+        return decoded;
       }
 
       function selectPlaceholderResolution(resolutions) {
@@ -901,12 +935,20 @@
         const placeholder = img.dataset.placeholder || img.dataset.fullsrc;
         const fullSrc = img.dataset.fullsrc || placeholder;
 
-        if (!placeholder) return;
+        if (!placeholder) {
+          if (window.__rgvDebug) {
+            console.warn(`[LOAD PROGRESSIVE] No placeholder for post ${img.dataset.postid}`);
+          }
+          return;
+        }
 
         if (!img.dataset.placeholderApplied) {
           img.src = placeholder;
           img.dataset.placeholderApplied = "true";
           img.dataset.loadingState = "placeholder";
+          if (window.__rgvDebug) {
+            console.log(`[LOAD PROGRESSIVE] Set placeholder for post ${img.dataset.postid}`, placeholder);
+          }
         }
 
         const upgradeToHighRes = () => {
@@ -927,26 +969,46 @@
           const highRes = new Image();
           highRes.src = fullSrc;
 
-          // Add timeout for mobile networks (10 seconds)
+          if (window.__rgvDebug) {
+            console.log(`[UPGRADE HIGH-RES] Post ${img.dataset.postid}: Starting high-res load`, fullSrc);
+          }
+
+          // Detect mobile for longer timeout
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          const timeoutMs = isMobile ? 15000 : 10000; // 15 seconds for mobile, 10 for desktop
+
+          // Add timeout for slow networks
           const timeoutId = setTimeout(() => {
             if (highRes.complete === false) {
               // Timeout occurred, mark as loaded with current placeholder
+              if (window.__rgvDebug) {
+                console.warn(`[UPGRADE TIMEOUT] Post ${img.dataset.postid}: Timeout after ${timeoutMs}ms, keeping placeholder`);
+              }
               img.dataset.upgraded = "true";
               img.dataset.loadingState = "loaded";
               img.dataset.upgrading = "false";
             }
-          }, 10000);
+          }, timeoutMs);
 
           highRes.onload = () => {
             clearTimeout(timeoutId);
+            if (window.__rgvDebug) {
+              console.log(`[UPGRADE SUCCESS] Post ${img.dataset.postid}: High-res loaded successfully`);
+            }
             img.src = fullSrc;
             img.dataset.upgraded = "true";
             img.dataset.loadingState = "loaded";
             img.dataset.upgrading = "false";
           };
-          highRes.onerror = () => {
+          highRes.onerror = (error) => {
             clearTimeout(timeoutId);
+            if (window.__rgvDebug) {
+              console.warn(`[UPGRADE ERROR] Post ${img.dataset.postid}: Failed to load high-res`, error);
+            }
             img.dataset.upgrading = "false";
+            // Fall back to placeholder - don't trigger image element onerror
+            img.dataset.upgraded = "true";
+            img.dataset.loadingState = "loaded";
           };
         };
 
@@ -972,6 +1034,8 @@
         const sources = getPostImageSources(postData);
         img.dataset.placeholder = sources.placeholder;
         img.dataset.fullsrc = sources.full;
+        img.dataset.postindex = index;
+        img.dataset.postid = postData.id || postData.name;
         if (index >= EAGER_IMAGE_COUNT) {
           img.dataset.lazy = "true";
         }
@@ -995,9 +1059,20 @@
             img.classList.remove("blur-sm", "opacity-60");
             img.classList.add("opacity-100");
           }
+          if (window.__rgvDebug) {
+            console.log(`[IMG LOAD] Post ${img.dataset.postid} (index ${index}): SUCCESS`);
+          }
         };
 
-        img.onerror = function () {
+        img.onerror = function (event) {
+          if (window.__rgvDebug) {
+            console.error(`[IMG ERROR] Post ${img.dataset.postid} (index ${index}):`, {
+              src: img.src,
+              placeholder: img.dataset.placeholder,
+              fullsrc: img.dataset.fullsrc,
+              error: event
+            });
+          }
           const wrapper = img.parentElement;
           if (!wrapper) return;
           retryImageLoad(wrapper, postData, index);
@@ -1462,12 +1537,19 @@
         const retryCount = imageRetryMap.get(retryKey) || 0;
         const maxRetries = 5; // Increased retries for mobile
 
+        if (window.__rgvDebug) {
+          console.warn(`[RETRY] Post ${retryKey}: Attempt ${retryCount + 1}/${maxRetries}`);
+        }
+
         if (retryCount >= maxRetries) {
           const retryBtn = document.createElement("div");
           retryBtn.className = "retry-btn p-4 flex flex-col gap-2";
           retryBtn.innerHTML = `<span>⟲ Tap to Retry</span><span style="font-size: 0.7rem;">Failed after ${retryCount} attempts</span>`;
           retryBtn.onclick = () => {
             imageRetryMap.set(retryKey, 0);
+            if (window.__rgvDebug) {
+              console.log(`[MANUAL RETRY] Post ${retryKey}: User clicked retry button`);
+            }
             retryImageLoad(wrapper, postData, postIndex);
           };
           wrapper.innerHTML = "";
@@ -1485,7 +1567,10 @@
         wrapper.appendChild(img);
 
         // Add exponential backoff delay for retries
-        const delayMs = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10 seconds
+        const delayMs = Math.min(1000 * Math.pow(2, retryCount), 15000); // Max 15 seconds (increased for mobile)
+        if (window.__rgvDebug) {
+          console.log(`[RETRY DELAY] Post ${retryKey}: Waiting ${delayMs}ms before retry attempt ${retryCount + 1}`);
+        }
         setTimeout(() => {
           loadProgressiveImage(img, { eager: true });
         }, delayMs);
@@ -1727,6 +1812,15 @@
         url.searchParams.set("time", timeFilter.name);
         window.history.replaceState({ subreddit, time: timeFilter.name }, "", url);
       }
+
+      // Enable debugging with: window.__rgvDebug = true; in browser console
+      // Or call enableRGVDebug() to enable it
+      function enableRGVDebug() {
+        window.__rgvDebug = true;
+        console.log("%c🔍 Reddit Gallery Viewer Debug Mode Enabled", "font-size: 14px; font-weight: bold; color: #FF4500;");
+        console.log("Image loading logs will now appear in the console. Use this to diagnose mobile loading issues.");
+      }
+      window.enableRGVDebug = enableRGVDebug;
 
       async function initializeApp() {
         const cachedPopular = readCachedPopularSubreddits();
