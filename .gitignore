@@ -26,3 +26,7 @@ build/
 
 # Cache
 .cache/
+
+# Coding Agents
+AGENTS.md
+CLAUDE.md

@@ -3,25 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Free Reddit gallery viewer - Browse any subreddit as a beautiful image gallery. View top photos, memes, and artwork from Reddit with dynamic color themes. No app needed!" />
-    <meta name="keywords" content="reddit gallery viewer, reddit image gallery, subreddit gallery, free reddit tool, reddit browser, reddit photo gallery, reddit top posts, image viewer" />
+    <meta
+      name="description"
+      content="Free Reddit gallery viewer - Browse any subreddit as a beautiful image gallery. View top photos, memes, and artwork from Reddit with dynamic color themes. No app needed!"
+    />
+    <meta
+      name="keywords"
+      content="reddit gallery viewer, reddit image gallery, subreddit gallery, free reddit tool, reddit browser, reddit photo gallery, reddit top posts, image viewer"
+    />
     <meta name="author" content="Reddit Gallery Viewer" />
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta
+      name="robots"
+      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+    />
 
     <!-- Open Graph for Social Sharing -->
-    <meta property="og:title" content="Reddit Gallery Viewer - Free Online Gallery for Any Subreddit" />
-    <meta property="og:description" content="Browse any Reddit subreddit as a beautiful image gallery. Free, fast, and no app needed. Discover top photos from photography, nature, art, and more!" />
+    <meta
+      property="og:title"
+      content="Reddit Gallery Viewer - Free Online Gallery for Any Subreddit"
+    />
+    <meta
+      property="og:description"
+      content="Browse any Reddit subreddit as a beautiful image gallery. Free, fast, and no app needed. Discover top photos from photography, nature, art, and more!"
+    />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://reddit-gallery-viewer.vercel.app/" />
-    <meta property="og:image" content="https://reddit-gallery-viewer.vercel.app/og-image.png" />
+    <meta
+      property="og:url"
+      content="https://reddit-gallery-viewer.vercel.app/"
+    />
+    <meta
+      property="og:image"
+      content="https://reddit-gallery-viewer.vercel.app/og-image.png"
+    />
     <meta property="og:site_name" content="Reddit Gallery Viewer" />
     <meta name="theme-color" content="#FF4500" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Reddit Gallery Viewer - Browse Subreddits as Image Galleries" />
-    <meta name="twitter:description" content="Free online tool to view Reddit subreddits as beautiful image galleries with dynamic color themes." />
-    <meta name="twitter:image" content="https://reddit-gallery-viewer.vercel.app/og-image.png" />
+    <meta
+      name="twitter:title"
+      content="Reddit Gallery Viewer - Browse Subreddits as Image Galleries"
+    />
+    <meta
+      name="twitter:description"
+      content="Free online tool to view Reddit subreddits as beautiful image galleries with dynamic color themes."
+    />
+    <meta
+      name="twitter:image"
+      content="https://reddit-gallery-viewer.vercel.app/og-image.png"
+    />
 
     <!-- Canonical Tag (防止重复内容问题) -->
     <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
@@ -57,49 +87,50 @@
 
     <!-- JSON-LD Structured Data for SEO -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Reddit Gallery Viewer",
-      "description": "Free online tool to browse any Reddit subreddit as a beautiful image gallery with dynamic color themes",
-      "url": "https://reddit-gallery-viewer.vercel.app/",
-      "applicationCategory": "UtilityApplication",
-      "image": "https://reddit-gallery-viewer.vercel.app/og-image.png",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "author": {
-        "@type": "Organization",
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
         "name": "Reddit Gallery Viewer",
-        "url": "https://reddit-gallery-viewer.vercel.app/"
-      },
-      "operatingSystem": "Web",
-      "browserRequirements": "Requires JavaScript"
-    }
+        "description": "Free online tool to browse any Reddit subreddit as a beautiful image gallery with dynamic color themes",
+        "url": "https://reddit-gallery-viewer.vercel.app/",
+        "applicationCategory": "UtilityApplication",
+        "image": "https://reddit-gallery-viewer.vercel.app/og-image.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "Reddit Gallery Viewer",
+          "url": "https://reddit-gallery-viewer.vercel.app/"
+        },
+        "operatingSystem": "Web",
+        "browserRequirements": "Requires JavaScript"
+      }
     </script>
 
     <style>
       :root {
         /* Reddit Official Colors */
-        --color-primary: #FF4500;        /* Reddit Orange */
-        --color-primary-light: #FF6D00;  /* Lighter Orange */
-        --color-primary-lighter: #FFB6A3; /* Very Light Orange */
-        --color-primary-bg: #FFFFFF;     /* White Background */
-        --color-accent: #818384;         /* Reddit Gray Accent */
-        --color-border: #CCCCCC;         /* Light Gray Border */
+        --color-primary: #ff4500; /* Reddit Orange */
+        --color-primary-light: #ff6d00; /* Lighter Orange */
+        --color-primary-lighter: #ffb6a3; /* Very Light Orange */
+        --color-primary-bg: #ffffff; /* White Background */
+        --color-accent: #818384; /* Reddit Gray Accent */
+        --color-border: #cccccc; /* Light Gray Border */
       }
 
       body {
         font-family: "Inter", sans-serif;
-        background-color: #FFFFFF;
+        background-color: #ffffff;
         color: #1f2937;
       }
 
       /* Smooth color transitions for all elements */
       * {
-        transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        transition: color 0.3s ease, background-color 0.3s ease,
+          border-color 0.3s ease;
       }
 
       /* Allow SVG transitions for theme changes */
@@ -135,15 +166,24 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(90deg, var(--color-primary-lighter) 25%, var(--color-accent) 50%, var(--color-primary-lighter) 75%);
+        background: linear-gradient(
+          90deg,
+          var(--color-primary-lighter) 25%,
+          var(--color-accent) 50%,
+          var(--color-primary-lighter) 75%
+        );
         background-size: 200% 100%;
         animation: shimmer 1.5s infinite;
         height: 100%;
         aspect-ratio: 1 / 1;
       }
       @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
       }
       /* Retry button */
       .retry-btn {
@@ -168,19 +208,22 @@
     <div class="container mx-auto p-4 md:p-8">
       <!-- Title Section with SEO Optimization -->
       <header class="text-center mb-6">
-        <h1 id="page-title" class="text-4xl font-bold" style="color: #FF4500;">
+        <h1 id="page-title" class="text-4xl font-bold" style="color: #ff4500">
           Reddit Gallery Viewer
         </h1>
-        <p id="page-subtitle" class="text-lg mt-2" style="color: #FF6D00;">Free Online Tool to Browse Subreddits as Image Galleries</p>
+        <p id="page-subtitle" class="text-lg mt-2" style="color: #ff6d00">
+          Free Online Tool to Browse Subreddits as Image Galleries
+        </p>
         <p class="text-sm text-gray-600 mt-3">
-          View top images from any Reddit subreddit with beautiful galleries and dynamic color themes.
+          View top images from any Reddit subreddit with beautiful galleries and
+          dynamic color themes.
         </p>
       </header>
 
       <!-- Custom Subreddit Input -->
       <div class="flex justify-center mb-8">
         <div class="w-full max-w-md">
-          <label class="block text-sm text-gray-600 mb-2" style="color: #666;">
+          <label class="block text-sm text-gray-600 mb-2" style="color: #666">
             🔍 Search for any Subreddit
           </label>
           <div class="flex gap-2">
@@ -189,18 +232,18 @@
               type="text"
               placeholder="e.g., photography, MostBeautiful..."
               class="flex-1 px-4 py-2 border-2 rounded-lg focus:outline-none text-gray-800"
-              style="border-color: #CCCCCC; color: #1a1a1b;"
+              style="border-color: #cccccc; color: #1a1a1b"
             />
             <button
               id="custom-subreddit-btn"
               class="px-6 text-white font-semibold rounded-lg transition-colors"
-              style="background-color: #FF4500;"
+              style="background-color: #ff4500"
               title="Press Enter to search"
             >
               Go
             </button>
           </div>
-          <p class="text-xs text-gray-500 mt-2" style="color: #999;">
+          <p class="text-xs text-gray-500 mt-2" style="color: #999">
             💡 Tip: Search by name, URL, or r/name format
           </p>
         </div>
@@ -208,7 +251,9 @@
 
       <!-- Subreddit Selector - Popular Subreddits -->
       <div class="mb-6">
-        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888;">Popular Subreddits</p>
+        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888">
+          Popular Subreddits
+        </p>
         <div
           id="subreddit-selector"
           class="flex flex-wrap justify-center items-center gap-2 md:gap-3 mb-4"
@@ -219,7 +264,9 @@
 
       <!-- Search History - Recently Viewed -->
       <div id="history-container" class="mb-6 hidden">
-        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888;">Recently Viewed</p>
+        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888">
+          Recently Viewed
+        </p>
         <div
           id="history-selector"
           class="flex flex-wrap justify-center items-center gap-2 md:gap-3 mb-4"
@@ -229,8 +276,10 @@
       </div>
 
       <!-- Time Filter -->
-      <div class="mb-8">
-        <p class="text-center text-sm text-gray-500 mb-3" style="color: #888;">📅 Time Period</p>
+      <div id="time-filter-section" class="mb-8">
+        <p class="text-center text-sm text-gray-500 mb-3" style="color: #888">
+          📅 Time Period
+        </p>
         <div
           id="time-filter-selector"
           class="flex flex-wrap justify-center items-center gap-2 md:gap-3"
@@ -247,7 +296,7 @@
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            style="color: #FF4500;"
+            style="color: #ff4500"
           >
             <circle
               class="opacity-25"
@@ -263,7 +312,9 @@
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p class="text-xl" style="color: #FF4500;">Loading images from Reddit...</p>
+          <p class="text-xl" style="color: #ff4500">
+            Loading images from Reddit...
+          </p>
         </div>
       </div>
 
@@ -354,7 +405,7 @@
               target="_blank"
               rel="noopener noreferrer"
               class="inline-block text-white font-bold py-2 px-6 rounded-lg transition-colors shadow hover:shadow-lg"
-              style="background-color: #FF4500;"
+              style="background-color: #ff4500"
             >
               View on Reddit
             </a>
@@ -368,13 +419,19 @@
       const loadingIndicator = document.getElementById("loading");
       const errorMessage = document.getElementById("error-message");
       const subredditSelector = document.getElementById("subreddit-selector");
+      const sortSelector = document.getElementById("sort-selector");
+      const timeFilterSection = document.getElementById("time-filter-section");
       const timeFilterSelector = document.getElementById(
         "time-filter-selector"
       );
       const pageTitle = document.getElementById("page-title");
       const pageSubtitle = document.getElementById("page-subtitle");
-      const customSubredditInput = document.getElementById("custom-subreddit-input");
-      const customSubredditBtn = document.getElementById("custom-subreddit-btn");
+      const customSubredditInput = document.getElementById(
+        "custom-subreddit-input"
+      );
+      const customSubredditBtn = document.getElementById(
+        "custom-subreddit-btn"
+      );
 
       const modal = document.getElementById("image-modal");
       const modalImage = document.getElementById("modal-image");
@@ -389,7 +446,7 @@
       let imageObserver = null;
       const imageRetryMap = new Map(); // Track retry attempts for each image
 
-      const subreddits = [
+      const DEFAULT_SUBREDDITS = [
         { name: "photography", displayName: "📸 Photography" },
         { name: "EarthPorn", displayName: "🌍 Nature" },
         { name: "CatsStandingUp", displayName: "🐱 Cats" },
@@ -399,13 +456,22 @@
         { name: "houseplants", displayName: "🌱 Houseplants" },
       ];
 
+      let subreddits = [...DEFAULT_SUBREDDITS];
+
+      const POPULAR_SUBREDDITS_KEY = "reddit_gallery_popular_subreddits";
+      const POPULAR_SUBREDDITS_TTL = 1000 * 60 * 60 * 24; // 24 hours
+      const POPULAR_SUBREDDITS_LIMIT = 8;
+      const MAX_VISIBLE_POSTS = 40;
+      const FETCH_LIMIT = 60;
+      const EAGER_IMAGE_COUNT = 6;
+
       const timeFilters = [
         { name: "day", displayName: "📆 Today" },
         { name: "week", displayName: "📅 This Week" },
         { name: "month", displayName: "📊 This Month" },
       ];
 
-      let currentSubreddit = subreddits[0].name;
+      let currentSubreddit = subreddits[0]?.name || "photography";
       let currentTimeFilter = timeFilters[0];
 
       // API 缓存机制
@@ -429,7 +495,7 @@
         try {
           let history = getSearchHistory();
           // 移除重复项
-          history = history.filter(item => item.name !== subreddit.name);
+          history = history.filter((item) => item.name !== subreddit.name);
           // 添加到开头
           history.unshift(subreddit);
           // 限制历史记录数量
@@ -442,7 +508,7 @@
       }
 
       const buildApiUrl = (subreddit, time) =>
-        `https://www.reddit.com/r/${subreddit}/top/.json?t=${time}&limit=100`;
+        `https://www.reddit.com/r/${subreddit}/top/.json?t=${time}&limit=${FETCH_LIMIT}`;
 
       const buildSubredditInfoUrl = (subreddit) =>
         `https://www.reddit.com/r/${subreddit}/about.json`;
@@ -456,7 +522,7 @@
         if (apiCache.has(cacheKey)) {
           const cached = apiCache.get(cacheKey);
           if (now - cached.time < CACHE_DURATION) {
-            console.log('Using cached data for:', url);
+            console.log("Using cached data for:", url);
             return cached.data;
           }
         }
@@ -464,8 +530,9 @@
         try {
           const response = await fetch(url, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Reddit-Gallery-Viewer/1.0'
-            }
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Reddit-Gallery-Viewer/1.0",
+            },
           });
 
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -474,15 +541,15 @@
           apiCache.set(cacheKey, { data, time: now });
           return data;
         } catch (error) {
-          console.error('Fetch error:', error);
+          console.error("Fetch error:", error);
           throw error;
         }
       }
 
       // Default theme colors (Reddit Official Colors)
       const defaultTheme = {
-        primary: "#FF4500",    // Reddit Orange
-        secondary: "#FFB6A3",  // Light Orange
+        primary: "#FF4500", // Reddit Orange
+        secondary: "#FFB6A3", // Light Orange
         background: "#FFF7F0", // Very Light Orange
       };
 
@@ -505,10 +572,15 @@
 
       // Convert RGB to hex
       function rgbToHex(r, g, b) {
-        return "#" + [r, g, b].map((x) => {
-          const hex = x.toString(16);
-          return hex.length === 1 ? "0" + hex : hex;
-        }).join("");
+        return (
+          "#" +
+          [r, g, b]
+            .map((x) => {
+              const hex = x.toString(16);
+              return hex.length === 1 ? "0" + hex : hex;
+            })
+            .join("")
+        );
       }
 
       // Lighten color by percentage
@@ -540,8 +612,7 @@
         const rgb = hexToRgb(hex);
         if (!rgb) return 0.5;
         // Using luminance formula from WCAG
-        const luminance =
-          (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+        const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
         return luminance;
       }
 
@@ -569,9 +640,235 @@
       async function fetchSubredditTheme(subreddit) {
         // Always use default Reddit colors, don't customize per subreddit
         return {
-          primary: defaultTheme.primary,      // #FF4500 (Reddit Orange)
-          accent: defaultTheme.secondary,     // #FFB6A3 (Light Orange)
+          primary: defaultTheme.primary, // #FF4500 (Reddit Orange)
+          accent: defaultTheme.secondary, // #FFB6A3 (Light Orange)
         };
+      }
+
+      function sanitizeRedditImageUrl(url) {
+        return url ? url.replace(/&amp;/g, "&") : "";
+      }
+
+      function selectPlaceholderResolution(resolutions) {
+        if (!resolutions || resolutions.length === 0) return null;
+        const targetWidth = 320;
+        let candidate = resolutions[0];
+        for (const res of resolutions) {
+          if (res.width >= targetWidth) {
+            candidate = res;
+            break;
+          }
+        }
+        return candidate || resolutions[resolutions.length - 1];
+      }
+
+      function getPostImageSources(postData) {
+        const fallback = sanitizeRedditImageUrl(postData.url);
+        const previewImage = postData.preview?.images?.[0];
+        if (!previewImage) {
+          return {
+            placeholder: fallback,
+            full: fallback,
+          };
+        }
+
+        const resolutions = previewImage.resolutions || [];
+        const placeholderRes = selectPlaceholderResolution(resolutions);
+        const placeholder = sanitizeRedditImageUrl(
+          placeholderRes?.url || previewImage.source?.url || fallback
+        );
+        const full = sanitizeRedditImageUrl(
+          previewImage.source?.url || fallback
+        );
+
+        return {
+          placeholder: placeholder || full,
+          full: full || fallback,
+        };
+      }
+
+      const scheduleIdle =
+        window.requestIdleCallback ||
+        function (cb) {
+          return setTimeout(cb, 200);
+        };
+
+      function loadProgressiveImage(img, { eager = false } = {}) {
+        if (!img) return;
+        if (img.dataset.loadingState === "loaded") return;
+
+        const placeholder = img.dataset.placeholder || img.dataset.fullsrc;
+        const fullSrc = img.dataset.fullsrc || placeholder;
+
+        if (!placeholder) return;
+
+        if (!img.dataset.placeholderApplied) {
+          img.src = placeholder;
+          img.dataset.placeholderApplied = "true";
+          img.dataset.loadingState = "placeholder";
+        }
+
+        const upgradeToHighRes = () => {
+          if (
+            !fullSrc ||
+            fullSrc === img.src ||
+            img.dataset.upgraded === "true" ||
+            img.dataset.upgrading === "true"
+          ) {
+            if (img.dataset.upgraded === "true") {
+              img.dataset.loadingState = "loaded";
+            }
+            return;
+          }
+
+          img.dataset.upgrading = "true";
+
+          const highRes = new Image();
+          highRes.src = fullSrc;
+          highRes.onload = () => {
+            img.src = fullSrc;
+            img.dataset.upgraded = "true";
+            img.dataset.loadingState = "loaded";
+            img.dataset.upgrading = "false";
+          };
+          highRes.onerror = () => {
+            img.dataset.upgrading = "false";
+          };
+        };
+
+        if (fullSrc !== placeholder) {
+          if (eager) {
+            upgradeToHighRes();
+          } else {
+            scheduleIdle(upgradeToHighRes);
+          }
+        } else {
+          img.dataset.upgraded = "true";
+          img.dataset.loadingState = "loaded";
+        }
+      }
+
+      function createGalleryImage(postData, index) {
+        const img = document.createElement("img");
+        img.alt = postData.title;
+        img.className = "w-full h-auto object-cover aspect-square";
+        img.loading = index < EAGER_IMAGE_COUNT ? "eager" : "lazy";
+        img.decoding = "async";
+
+        const sources = getPostImageSources(postData);
+        img.dataset.placeholder = sources.placeholder;
+        img.dataset.fullsrc = sources.full;
+        if (index >= EAGER_IMAGE_COUNT) {
+          img.dataset.lazy = "true";
+        }
+
+        img.classList.add(
+          "blur-sm",
+          "opacity-60",
+          "transition-all",
+          "duration-300",
+          "ease-out"
+        );
+
+        img.onload = function () {
+          const loading = img.parentElement?.querySelector(".image-loading");
+          if (loading) loading.remove();
+          const isHighRes =
+            img.dataset.upgraded === "true" ||
+            !img.dataset.fullsrc ||
+            img.dataset.fullsrc === img.src;
+          if (isHighRes) {
+            img.classList.remove("blur-sm", "opacity-60");
+            img.classList.add("opacity-100");
+          }
+        };
+
+        img.onerror = function () {
+          const wrapper = img.parentElement;
+          if (!wrapper) return;
+          retryImageLoad(wrapper, postData, index);
+        };
+
+        return img;
+      }
+
+      function readCachedPopularSubreddits() {
+        try {
+          const raw = localStorage.getItem(POPULAR_SUBREDDITS_KEY);
+          if (!raw) return null;
+          const payload = JSON.parse(raw);
+          if (!payload?.items?.length) return null;
+          if (Date.now() - payload.timestamp > POPULAR_SUBREDDITS_TTL) {
+            return null;
+          }
+          return payload.items;
+        } catch (error) {
+          console.warn("Failed to read cached popular subreddits:", error);
+          return null;
+        }
+      }
+
+      function storePopularSubreddits(items) {
+        try {
+          localStorage.setItem(
+            POPULAR_SUBREDDITS_KEY,
+            JSON.stringify({ items, timestamp: Date.now() })
+          );
+        } catch (error) {
+          console.warn("Unable to persist popular subreddits:", error);
+        }
+      }
+
+      async function loadPopularSubreddits() {
+        const cached = readCachedPopularSubreddits();
+        if (cached) {
+          return cached;
+        }
+
+        try {
+          const response = await fetch(
+            `https://www.reddit.com/subreddits/popular.json?limit=${
+              POPULAR_SUBREDDITS_LIMIT * 3
+            }`,
+            {
+              headers: {
+                "User-Agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Reddit-Gallery-Viewer/1.0",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const json = await response.json();
+          const items =
+            json?.data?.children
+              ?.map((child) => child?.data)
+              ?.filter(
+                (data) =>
+                  data &&
+                  !data.over18 &&
+                  !data.quarantine &&
+                  !data.hide_ads &&
+                  !data.restrict_commenting
+              )
+              ?.slice(0, POPULAR_SUBREDDITS_LIMIT)
+              ?.map((data) => ({
+                name: data.display_name,
+                displayName: `🔥 ${data.display_name_prefixed}`,
+              })) || [];
+
+          if (items.length) {
+            storePopularSubreddits(items);
+            return items;
+          }
+        } catch (error) {
+          console.warn("Unable to fetch popular subreddits:", error);
+        }
+
+        return null;
       }
 
       // Apply theme colors to entire page
@@ -588,9 +885,18 @@
 
         // Set CSS variables
         document.documentElement.style.setProperty("--color-primary", primary);
-        document.documentElement.style.setProperty("--color-primary-light", light);
-        document.documentElement.style.setProperty("--color-primary-lighter", lighter);
-        document.documentElement.style.setProperty("--color-primary-bg", bgLight);
+        document.documentElement.style.setProperty(
+          "--color-primary-light",
+          light
+        );
+        document.documentElement.style.setProperty(
+          "--color-primary-lighter",
+          lighter
+        );
+        document.documentElement.style.setProperty(
+          "--color-primary-bg",
+          bgLight
+        );
         document.documentElement.style.setProperty("--color-accent", lighter);
         document.documentElement.style.setProperty("--color-border", border);
 
@@ -606,7 +912,10 @@
         }
         // Make subtitle darker and more readable
         if (pageSubtitle) {
-          pageSubtitle.style.color = getColorBrightness(primary) > 0.6 ? darkenColor(primary, 20) : light;
+          pageSubtitle.style.color =
+            getColorBrightness(primary) > 0.6
+              ? darkenColor(primary, 20)
+              : light;
           pageSubtitle.style.fontWeight = "600";
         }
 
@@ -620,7 +929,10 @@
         // Update all buttons with proper colors
         document.querySelectorAll("button").forEach((btn) => {
           // Subreddit selector buttons
-          if (btn.parentId === "subreddit-selector" || btn.closest("#subreddit-selector")) {
+          if (
+            btn.parentId === "subreddit-selector" ||
+            btn.closest("#subreddit-selector")
+          ) {
             btn.style.backgroundColor = "white";
             btn.style.color = primary;
             btn.style.borderColor = light;
@@ -639,10 +951,7 @@
             btn.style.color = "white";
           }
           // Modal navigation buttons
-          else if (
-            btn.id === "modal-prev-btn" ||
-            btn.id === "modal-next-btn"
-          ) {
+          else if (btn.id === "modal-prev-btn" || btn.id === "modal-next-btn") {
             btn.style.color = primary;
           }
         });
@@ -689,7 +998,11 @@
             color: ${primary} !important;
           }
           #page-subtitle {
-            color: ${getColorBrightness(primary) > 0.6 ? darkenColor(primary, 20) : light} !important;
+            color: ${
+              getColorBrightness(primary) > 0.6
+                ? darkenColor(primary, 20)
+                : light
+            } !important;
             font-weight: 600 !important;
           }
           #custom-subreddit-input {
@@ -727,7 +1040,9 @@
             color: white !important;
           }
           .shadow-md {
-            box-shadow: 0 4px 6px -1px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1) !important;
+            box-shadow: 0 4px 6px -1px rgba(${rgb.r}, ${rgb.g}, ${
+          rgb.b
+        }, 0.1) !important;
           }
           #error-message {
             background-color: ${lightenColor(primary, 92)} !important;
@@ -779,9 +1094,9 @@
 
         // Handle various Reddit URL formats
         const urlPatterns = [
-          /https?:\/\/(?:www\.)?reddit\.com\/r\/([a-zA-Z0-9_-]+)/i,  // https://reddit.com/r/houseplants
+          /https?:\/\/(?:www\.)?reddit\.com\/r\/([a-zA-Z0-9_-]+)/i, // https://reddit.com/r/houseplants
           /https?:\/\/(?:www\.)?reddit\.com\/r\/([a-zA-Z0-9_-]+)\//i, // https://reddit.com/r/houseplants/
-          /^r\/([a-zA-Z0-9_-]+)/i,                                     // r/houseplants
+          /^r\/([a-zA-Z0-9_-]+)/i, // r/houseplants
         ];
 
         for (const pattern of urlPatterns) {
@@ -803,7 +1118,7 @@
         if (index < 0 || index >= imagePosts.length) return;
 
         currentImageIndex = index;
-        const postData = imagePosts[index].data;
+        const postData = imagePosts[index];
 
         // Set image with error handling
         modalImage.src = "";
@@ -813,10 +1128,10 @@
         modalImage.onerror = function () {
           // Retry with delay
           setTimeout(() => {
-            modalImage.src = postData.url;
+            modalImage.src = sanitizeRedditImageUrl(postData.url);
           }, 1000);
         };
-        modalImage.src = postData.url;
+        modalImage.src = sanitizeRedditImageUrl(postData.url);
         modalImage.alt = postData.title;
         modalTitle.textContent = postData.title;
         modalLink.href = `https://www.reddit.com${postData.permalink}`;
@@ -825,9 +1140,11 @@
         modalPrevBtn.disabled = index === 0;
         modalNextBtn.disabled = index === imagePosts.length - 1;
         modalPrevBtn.style.opacity = index === 0 ? "0.5" : "1";
-        modalNextBtn.style.opacity = index === imagePosts.length - 1 ? "0.5" : "1";
+        modalNextBtn.style.opacity =
+          index === imagePosts.length - 1 ? "0.5" : "1";
         modalPrevBtn.style.cursor = index === 0 ? "not-allowed" : "pointer";
-        modalNextBtn.style.cursor = index === imagePosts.length - 1 ? "not-allowed" : "pointer";
+        modalNextBtn.style.cursor =
+          index === imagePosts.length - 1 ? "not-allowed" : "pointer";
       }
 
       function openModal(imageUrl, postUrl, title, index) {
@@ -867,19 +1184,16 @@
       );
       modalPrevBtn.addEventListener("click", showPreviousImage);
       modalNextBtn.addEventListener("click", showNextImage);
-      document.addEventListener(
-        "keydown",
-        (e) => {
-          if (modal.classList.contains("hidden")) return;
-          if (e.key === "Escape") {
-            closeModal();
-          } else if (e.key === "ArrowLeft") {
-            showPreviousImage();
-          } else if (e.key === "ArrowRight") {
-            showNextImage();
-          }
+      document.addEventListener("keydown", (e) => {
+        if (modal.classList.contains("hidden")) return;
+        if (e.key === "Escape") {
+          closeModal();
+        } else if (e.key === "ArrowLeft") {
+          showPreviousImage();
+        } else if (e.key === "ArrowRight") {
+          showNextImage();
         }
-      );
+      });
 
       // Initialize lazy loading observer
       function initImageObserver() {
@@ -891,54 +1205,56 @@
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
                 const img = entry.target;
-                const src = img.dataset.src;
-                if (src && img.src !== src) {
-                  img.src = src;
-                }
+                loadProgressiveImage(img);
+                img.dataset.lazy = "false";
+                imageObserver.unobserve(img);
               }
             });
           },
-          { rootMargin: "100px" }
+          { rootMargin: "50px", threshold: 0.25 }
         );
 
         // Observe all pending images
-        document.querySelectorAll("img[data-src]").forEach((img) => {
+        document.querySelectorAll('img[data-lazy="true"]').forEach((img) => {
           imageObserver.observe(img);
         });
       }
 
       // Retry loading image
-      function retryImageLoad(wrapper, src, altText, postIndex) {
-        const retryCount = imageRetryMap.get(src) || 0;
+      function retryImageLoad(wrapper, postData, postIndex) {
+        if (!wrapper) return;
+
+        const retryKey =
+          postData.id ||
+          postData.name ||
+          sanitizeRedditImageUrl(postData.url) ||
+          `post-${postIndex}`;
+
+        const retryCount = imageRetryMap.get(retryKey) || 0;
         if (retryCount >= 3) {
-          wrapper.innerHTML = `<div class="image-error p-4">Image failed to load<br/>(${altText})</div>`;
+          const retryBtn = document.createElement("div");
+          retryBtn.className = "retry-btn p-4 flex flex-col gap-2";
+          retryBtn.innerHTML = `<span>⟲ Retry</span><span style="font-size: 0.7rem;">Attempts ${retryCount}/3</span>`;
+          retryBtn.onclick = () => {
+            imageRetryMap.set(retryKey, 0);
+            retryImageLoad(wrapper, postData, postIndex);
+          };
+          wrapper.innerHTML = "";
+          wrapper.appendChild(retryBtn);
           return;
         }
 
-        imageRetryMap.set(src, retryCount + 1);
-        wrapper.innerHTML = `<div class="image-loading"></div>`;
-
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = altText;
-        img.className = "w-full h-auto object-cover aspect-square";
-
-        img.onload = function () {
-          wrapper.innerHTML = "";
-          wrapper.appendChild(img);
-        };
-
-        img.onerror = function () {
-          const retryBtn = document.createElement("div");
-          retryBtn.className = "retry-btn p-4 flex flex-col gap-2";
-          retryBtn.innerHTML = `<span>⟲ Retry</span><span style="font-size: 0.7rem;">Attempt ${retryCount + 1}/3</span>`;
-          retryBtn.onclick = () => retryImageLoad(wrapper, src, altText, postIndex);
-          wrapper.innerHTML = "";
-          wrapper.appendChild(retryBtn);
-        };
-
+        imageRetryMap.set(retryKey, retryCount + 1);
         wrapper.innerHTML = "";
+        const loadingDiv = document.createElement("div");
+        loadingDiv.className = "image-loading";
+        wrapper.appendChild(loadingDiv);
+
+        const img = createGalleryImage(postData, postIndex);
         wrapper.appendChild(img);
+
+        // Force eager load on retry to surface issues immediately
+        loadProgressiveImage(img, { eager: true });
       }
 
       async function fetchImages(subreddit, timeFilter) {
@@ -947,29 +1263,38 @@
         loadingIndicator.classList.remove("hidden");
         errorMessage.classList.add("hidden");
 
-        const displayName = subreddits.find((s) => s.name === subreddit)?.displayName || subreddit;
-        pageTitle.textContent = `Reddit ${displayName} Gallery`;
-        pageSubtitle.textContent = `Top images from /r/${subreddit} (${timeFilter.displayName})`;
+        const matchedSubreddit = subreddits.find((s) => s.name === subreddit);
+        const displayLabel = matchedSubreddit?.displayName || `/r/${subreddit}`;
+        const plainName = matchedSubreddit?.name || subreddit;
+        pageTitle.textContent = `Reddit ${plainName} Gallery`;
+        pageSubtitle.textContent = `Top images from ${displayLabel} (${timeFilter.displayName})`;
 
         // 保存到搜索历史
-        addToSearchHistory({ name: subreddit, displayName: displayName });
+        addToSearchHistory({ name: subreddit, displayName: displayLabel });
 
         // Fetch and apply subreddit theme
         const theme = await fetchSubredditTheme(subreddit);
         applyTheme(theme);
 
         try {
-          const data = await fetchWithCache(buildApiUrl(subreddit, timeFilter.name));
+          const data = await fetchWithCache(
+            buildApiUrl(subreddit, timeFilter.name)
+          );
           loadingIndicator.classList.add("hidden");
 
-          imagePosts = data.data.children.filter(
-            (post) =>
-              post.data.post_hint === "image" ||
-              (post.data.url &&
-                (post.data.url.endsWith(".jpg") ||
-                  post.data.url.endsWith(".png") ||
-                  post.data.url.endsWith(".gif")))
-          );
+          const filteredPosts = data.data.children
+            .filter(
+              (post) =>
+                post.data.post_hint === "image" ||
+                (post.data.url &&
+                  (post.data.url.endsWith(".jpg") ||
+                    post.data.url.endsWith(".png") ||
+                    post.data.url.endsWith(".gif")))
+            )
+            .slice(0, MAX_VISIBLE_POSTS)
+            .map((post) => post.data);
+
+          imagePosts = filteredPosts;
 
           if (imagePosts.length === 0) {
             errorMessage.querySelector(
@@ -979,14 +1304,15 @@
             return;
           }
 
-          imagePosts.forEach((post, index) => {
-            const postData = post.data;
+          const fragment = document.createDocumentFragment();
+
+          imagePosts.forEach((postData, index) => {
             const card = document.createElement("div");
             card.className =
               "bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 group cursor-pointer";
             card.addEventListener("click", () =>
               openModal(
-                postData.url,
+                sanitizeRedditImageUrl(postData.url),
                 `https://www.reddit.com${postData.permalink}`,
                 postData.title,
                 index
@@ -1001,27 +1327,8 @@
             loadingDiv.className = "image-loading";
             imgWrapper.appendChild(loadingDiv);
 
-            // Create img with lazy loading for images beyond first 12
-            const img = document.createElement("img");
-            img.alt = postData.title;
-            img.className = "w-full h-auto object-cover aspect-square";
-
-            img.onload = function () {
-              const loading = imgWrapper.querySelector(".image-loading");
-              if (loading) loading.remove();
-            };
-
-            img.onerror = function () {
-              retryImageLoad(imgWrapper, postData.url, postData.title, index);
-            };
-
-            // Load first 12 images immediately, rest use lazy loading
-            if (index < 12) {
-              img.src = postData.url;
-            } else {
-              img.dataset.src = postData.url;
-            }
-
+            // Create img with lazy loading for everything beyond the eager threshold
+            const img = createGalleryImage(postData, index);
             imgWrapper.appendChild(img);
 
             const overlay = document.createElement("div");
@@ -1031,8 +1338,14 @@
 
             card.appendChild(imgWrapper);
             card.appendChild(overlay);
-            galleryContainer.appendChild(card);
+            fragment.appendChild(card);
+
+            if (index < EAGER_IMAGE_COUNT) {
+              loadProgressiveImage(img, { eager: true });
+            }
           });
+
+          galleryContainer.appendChild(fragment);
 
           // Initialize lazy loading after rendering
           initImageObserver();
@@ -1041,6 +1354,35 @@
           loadingIndicator.classList.add("hidden");
           errorMessage.classList.remove("hidden");
         }
+      }
+
+      function renderSubredditButtons() {
+        subredditSelector.innerHTML = "";
+        const fragment = document.createDocumentFragment();
+
+        subreddits.forEach((sub) => {
+          const button = document.createElement("button");
+          button.className =
+            "px-4 py-2 rounded-lg font-semibold transition-colors duration-200 bg-white shadow-sm";
+          button.style.color = "#FF4500";
+          button.textContent = sub.displayName;
+          button.dataset.subreddit = sub.name;
+          button.addEventListener("click", (e) => {
+            const target = e.currentTarget;
+            if (!target) return;
+            if (currentSubreddit === sub.name) return;
+            currentSubreddit = sub.name;
+            setActiveButton("#subreddit-selector button", target);
+            fetchImages(currentSubreddit, currentTimeFilter);
+          });
+          fragment.appendChild(button);
+        });
+
+        subredditSelector.appendChild(fragment);
+
+        return subredditSelector.querySelector(
+          `[data-subreddit="${currentSubreddit}"]`
+        );
       }
 
       function setActiveButton(selector, activeButton) {
@@ -1079,11 +1421,13 @@
           button.addEventListener("click", () => {
             currentSubreddit = item.name;
             // 更新按钮状态
-            document.querySelectorAll("#subreddit-selector button").forEach((btn) => {
-              btn.classList.remove("shadow-md");
-              btn.style.backgroundColor = "white";
-              btn.style.color = "#FF4500";
-            });
+            document
+              .querySelectorAll("#subreddit-selector button")
+              .forEach((btn) => {
+                btn.classList.remove("shadow-md");
+                btn.style.backgroundColor = "white";
+                btn.style.color = "#FF4500";
+              });
             fetchImages(currentSubreddit, currentTimeFilter);
           });
           historySelector.appendChild(button);
@@ -1102,7 +1446,9 @@
         const subredditName = parseSubredditName(input);
 
         if (!subredditName) {
-          alert("Invalid subreddit name or link format. Please enter a valid name or link.");
+          alert(
+            "Invalid subreddit name or link format. Please enter a valid name or link."
+          );
           customSubredditInput.focus();
           return;
         }
@@ -1111,11 +1457,13 @@
         customSubredditInput.value = ""; // Clear input field
 
         // Remove active state from all buttons
-        document.querySelectorAll("#subreddit-selector button").forEach((btn) => {
-          btn.classList.remove("shadow-md");
-          btn.style.backgroundColor = "white";
-          btn.style.color = "#FF4500";
-        });
+        document
+          .querySelectorAll("#subreddit-selector button")
+          .forEach((btn) => {
+            btn.classList.remove("shadow-md");
+            btn.style.backgroundColor = "white";
+            btn.style.color = "#FF4500";
+          });
 
         fetchImages(currentSubreddit, currentTimeFilter);
 
@@ -1123,21 +1471,14 @@
         setTimeout(() => renderSearchHistory(), 100);
       }
 
-      function initializeApp() {
-        // Create Subreddit buttons
-        subreddits.forEach((sub) => {
-          const button = document.createElement("button");
-          button.className =
-            "px-4 py-2 rounded-lg font-semibold transition-colors duration-200 bg-white shadow-sm";
-          button.style.color = "#FF4500";
-          button.textContent = sub.displayName;
-          button.addEventListener("click", (e) => {
-            currentSubreddit = sub.name;
-            setActiveButton("#subreddit-selector button", e.target);
-            fetchImages(currentSubreddit, currentTimeFilter);
-          });
-          subredditSelector.appendChild(button);
-        });
+      async function initializeApp() {
+        const cachedPopular = readCachedPopularSubreddits();
+        if (cachedPopular && cachedPopular.length) {
+          subreddits = cachedPopular;
+          currentSubreddit = subreddits[0].name;
+        }
+
+        const initialSubredditButton = renderSubredditButtons();
 
         // Add custom subreddit input event handling
         customSubredditBtn.addEventListener("click", handleCustomSubreddit);
@@ -1147,7 +1488,8 @@
           }
         });
 
-        // Create time filter buttons
+        // Create time filter buttons with minimal reflow
+        const timeFragment = document.createDocumentFragment();
         timeFilters.forEach((filter) => {
           const button = document.createElement("button");
           button.className =
@@ -1156,32 +1498,46 @@
           button.textContent = filter.displayName;
           button.addEventListener("click", (e) => {
             currentTimeFilter = filter;
-            setActiveButton("#time-filter-selector button", e.target);
+            setActiveButton("#time-filter-selector button", e.currentTarget);
             fetchImages(currentSubreddit, currentTimeFilter);
           });
-          timeFilterSelector.appendChild(button);
+          timeFragment.appendChild(button);
         });
+        timeFilterSelector.appendChild(timeFragment);
 
         // Activate default buttons and load initial data
-        // FIX: Use .firstElementChild instead of .firstChild to ensure we select an element, not a text node.
         setActiveButton(
           "#subreddit-selector button",
-          subredditSelector.firstElementChild
+          initialSubredditButton || subredditSelector.firstElementChild
         );
         setActiveButton(
           "#time-filter-selector button",
           timeFilterSelector.firstElementChild
         );
 
-        // Apply initial theme
-        fetchSubredditTheme(currentSubreddit).then((theme) => {
-          applyTheme(theme);
-        });
+        const theme = await fetchSubredditTheme(currentSubreddit);
+        applyTheme(theme);
 
-        // 渲染搜索历史
         renderSearchHistory();
+        await fetchImages(currentSubreddit, currentTimeFilter);
 
-        fetchImages(currentSubreddit, currentTimeFilter);
+        // Refresh popular subreddits asynchronously (daily cadence)
+        loadPopularSubreddits().then((popular) => {
+          if (!popular || !popular.length) return;
+          const incomingSignature = popular.map((item) => item.name).join(",");
+          const existingSignature = subreddits
+            .map((item) => item.name)
+            .join(",");
+          if (incomingSignature === existingSignature) return;
+          const previous = currentSubreddit;
+          subreddits = popular;
+          currentSubreddit = subreddits[0].name;
+          const activeAfterRender = renderSubredditButtons();
+          setActiveButton("#subreddit-selector button", activeAfterRender);
+          if (previous !== currentSubreddit) {
+            fetchImages(currentSubreddit, currentTimeFilter);
+          }
+        });
       }
 
       document.addEventListener("DOMContentLoaded", initializeApp);
