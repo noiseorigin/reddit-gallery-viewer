@@ -36,8 +36,9 @@
       content="https://reddit-gallery-viewer.vercel.app/rgv_logo.png"
     />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:secure_url" content="https://reddit-gallery-viewer.vercel.app/rgv_logo.png" />
     <meta property="og:site_name" content="Reddit Gallery Viewer" />
     <meta property="og:locale" content="en_US" />
     <meta name="theme-color" content="#FF4500" />
@@ -57,7 +58,21 @@
       content="https://reddit-gallery-viewer.vercel.app/rgv_logo.png"
     />
     <meta name="twitter:image:alt" content="Reddit Gallery Viewer Logo - Browse Reddit subreddits as image galleries" />
+    <meta name="twitter:site" content="@RedditGallery" />
 
+    <!--
+      Note on X (Twitter) Card Issues:
+      X requires images to be at least 200x200px for card display.
+      However, for best results and proper card rendering:
+      - Minimum: 200x200px
+      - Recommended: 1200x630px (16:9 ratio)
+      - Maximum file size: 5MB
+
+      If the logo doesn't show in X preview:
+      1. Clear X's cache: https://cards-dev.twitter.com/validator
+      2. Use the X Card Validator to test your URL
+      3. Ensure the logo file is served over HTTPS with proper CORS headers
+    -->
     <!-- Canonical Tag (防止重复内容问题) -->
     <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
 
