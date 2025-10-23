@@ -33,7 +33,7 @@
     />
     <meta
       property="og:image"
-      content="https://reddit-gallery-viewer.vercel.app/og-image.png"
+      content="https://reddit-gallery-viewer.vercel.app/rgv_logo.png"
     />
     <meta property="og:site_name" content="Reddit Gallery Viewer" />
     <meta name="theme-color" content="#FF4500" />
@@ -50,11 +50,15 @@
     />
     <meta
       name="twitter:image"
-      content="https://reddit-gallery-viewer.vercel.app/og-image.png"
+      content="https://reddit-gallery-viewer.vercel.app/rgv_logo.png"
     />
 
     <!-- Canonical Tag (防止重复内容问题) -->
     <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./rgv_logo.png" />
+    <link rel="apple-touch-icon" href="./rgv_logo.png" />
 
     <!-- Preconnect to external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -91,7 +95,7 @@
         "description": "Free online tool to browse any Reddit subreddit as a beautiful image gallery with dynamic color themes",
         "url": "https://reddit-gallery-viewer.vercel.app/",
         "applicationCategory": "UtilityApplication",
-        "image": "https://reddit-gallery-viewer.vercel.app/og-image.png",
+        "image": "https://reddit-gallery-viewer.vercel.app/rgv_logo.png",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -204,14 +208,19 @@
   <body class="bg-white text-gray-800">
     <div class="container mx-auto p-4 md:p-8">
       <!-- Title Section with SEO Optimization -->
-      <header class="text-center mb-6">
-        <h1 id="page-title" class="text-4xl font-bold" style="color: #ff4500">
-          Reddit Gallery Viewer
-        </h1>
-        <p id="page-subtitle" class="text-lg mt-2" style="color: #ff6d00">
-          Free Online Tool to Browse Subreddits as Image Galleries
-        </p>
-        <p class="text-sm text-gray-600 mt-3">
+      <header class="mb-6">
+        <div class="flex items-center gap-4 mb-6">
+          <img src="./rgv_logo.png" alt="Reddit Gallery Viewer Logo" class="h-12 w-12 flex-shrink-0" />
+          <div>
+            <h1 id="page-title" class="text-4xl font-bold" style="color: #ff4500">
+              Reddit Gallery Viewer
+            </h1>
+            <p id="page-subtitle" class="text-lg mt-1" style="color: #ff6d00">
+              Free Online Tool to Browse Subreddits as Image Galleries
+            </p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">
           View top images from any Reddit subreddit with beautiful galleries and
           dynamic color themes.
         </p>
@@ -246,42 +255,45 @@
         </div>
       </div>
 
-      <!-- Subreddit Selector - Popular Subreddits -->
-      <div class="mb-6">
-        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888">
-          Popular Subreddits
-        </p>
-        <div
-          id="subreddit-selector"
-          class="flex flex-wrap justify-center items-center gap-2 md:gap-3 mb-4"
-        >
-          <!-- Subreddit buttons will be dynamically inserted here -->
+      <!-- Filters Section - Compact Layout -->
+      <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+        <!-- Popular Subreddits -->
+        <div class="mb-4">
+          <p class="text-xs font-semibold text-gray-500 mb-2 uppercase" style="color: #888">
+            Popular Subreddits
+          </p>
+          <div
+            id="subreddit-selector"
+            class="flex flex-wrap gap-2"
+          >
+            <!-- Subreddit buttons will be dynamically inserted here -->
+          </div>
         </div>
-      </div>
 
-      <!-- Search History - Recently Viewed -->
-      <div id="history-container" class="mb-6 hidden">
-        <p class="text-center text-sm text-gray-500 mb-2" style="color: #888">
-          Recently Viewed
-        </p>
-        <div
-          id="history-selector"
-          class="flex flex-wrap justify-center items-center gap-2 md:gap-3 mb-4"
-        >
-          <!-- Search history buttons will be dynamically inserted here -->
+        <!-- Recently Viewed -->
+        <div id="history-container" class="mb-4 hidden">
+          <p class="text-xs font-semibold text-gray-500 mb-2 uppercase" style="color: #888">
+            Recently Viewed
+          </p>
+          <div
+            id="history-selector"
+            class="flex flex-wrap gap-2"
+          >
+            <!-- Search history buttons will be dynamically inserted here -->
+          </div>
         </div>
-      </div>
 
-      <!-- Time Filter -->
-      <div id="time-filter-section" class="mb-8">
-        <p class="text-center text-sm text-gray-500 mb-3" style="color: #888">
-          📅 Time Period
-        </p>
-        <div
-          id="time-filter-selector"
-          class="flex flex-wrap justify-center items-center gap-2 md:gap-3"
-        >
-          <!-- Time filter buttons will be dynamically inserted here -->
+        <!-- Time Filter -->
+        <div id="time-filter-section">
+          <p class="text-xs font-semibold text-gray-500 mb-2 uppercase" style="color: #888">
+            📅 Time Period
+          </p>
+          <div
+            id="time-filter-selector"
+            class="flex flex-wrap gap-2"
+          >
+            <!-- Time filter buttons will be dynamically inserted here -->
+          </div>
         </div>
       </div>
 
@@ -325,6 +337,24 @@
         <span class="block sm:inline"
           >Unable to fetch data from Reddit. Please try again later.</span
         >
+      </div>
+
+      <!-- Share Button -->
+      <div class="flex justify-center mb-6">
+        <button
+          id="share-btn"
+          class="px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2"
+          style="background-color: #ff4500; color: white;"
+          title="Copy shareable link to clipboard"
+        >
+          <span>🔗 Share Gallery</span>
+        </button>
+        <span
+          id="share-feedback"
+          class="ml-3 text-green-600 text-sm font-semibold hidden"
+        >
+          ✓ Copied to clipboard!
+        </span>
       </div>
 
       <!-- Image Gallery -->
@@ -579,6 +609,9 @@
       const modalCloseBtn = document.getElementById("modal-close-btn");
       const modalPrevBtn = document.getElementById("modal-prev-btn");
       const modalNextBtn = document.getElementById("modal-next-btn");
+
+      const shareBtn = document.getElementById("share-btn");
+      const shareFeedback = document.getElementById("share-feedback");
 
       let currentImageIndex = 0;
       let imagePosts = [];
@@ -1356,6 +1389,21 @@
         }
       });
 
+      // Share button handler
+      shareBtn.addEventListener("click", () => {
+        const currentURL = window.location.href;
+        navigator.clipboard.writeText(currentURL).then(() => {
+          // Show feedback
+          shareFeedback.classList.remove("hidden");
+          setTimeout(() => {
+            shareFeedback.classList.add("hidden");
+          }, 2000);
+        }).catch(() => {
+          // Fallback if clipboard API fails
+          alert("Share link: " + currentURL);
+        });
+      });
+
       // Initialize lazy loading observer
       function initImageObserver() {
         if (imageObserver) {
@@ -1529,7 +1577,7 @@
         subreddits.forEach((sub) => {
           const button = document.createElement("button");
           button.className =
-            "px-4 py-2 rounded-lg font-semibold transition-colors duration-200 bg-white shadow-sm";
+            "px-3 py-1 text-sm rounded font-medium transition-colors duration-200 bg-white shadow-sm";
           button.style.color = "#FF4500";
           button.textContent = sub.displayName;
           button.dataset.subreddit = sub.name;
@@ -1539,6 +1587,7 @@
             if (currentSubreddit === sub.name) return;
             currentSubreddit = sub.name;
             setActiveButton("#subreddit-selector button", target);
+            updateURL(currentSubreddit, currentTimeFilter);
             fetchImages(currentSubreddit, currentTimeFilter);
           });
           fragment.appendChild(button);
@@ -1594,6 +1643,7 @@
                 btn.style.backgroundColor = "white";
                 btn.style.color = "#FF4500";
               });
+            updateURL(currentSubreddit, currentTimeFilter);
             fetchImages(currentSubreddit, currentTimeFilter);
           });
           historySelector.appendChild(button);
@@ -1631,10 +1681,31 @@
             btn.style.color = "#FF4500";
           });
 
+        updateURL(currentSubreddit, currentTimeFilter);
         fetchImages(currentSubreddit, currentTimeFilter);
 
         // 更新搜索历史显示
         setTimeout(() => renderSearchHistory(), 100);
+      }
+
+      // Parse URL query parameters
+      function parseURLParameters() {
+        const params = new URLSearchParams(window.location.search);
+        const urlSubreddit = params.get("sub") || params.get("subreddit");
+        const urlTime = params.get("time") || params.get("t");
+
+        return {
+          subreddit: urlSubreddit,
+          time: urlTime,
+        };
+      }
+
+      // Update URL without reloading page
+      function updateURL(subreddit, timeFilter) {
+        const url = new URL(window.location);
+        url.searchParams.set("sub", subreddit);
+        url.searchParams.set("time", timeFilter.name);
+        window.history.replaceState({ subreddit, time: timeFilter.name }, "", url);
       }
 
       async function initializeApp() {
@@ -1642,6 +1713,18 @@
         if (cachedPopular && cachedPopular.length) {
           subreddits = cachedPopular;
           currentSubreddit = subreddits[0].name;
+        }
+
+        // Check URL parameters for initial subreddit/time
+        const urlParams = parseURLParameters();
+        if (urlParams.subreddit) {
+          currentSubreddit = urlParams.subreddit;
+        }
+        if (urlParams.time) {
+          const matchedFilter = timeFilters.find((f) => f.name === urlParams.time);
+          if (matchedFilter) {
+            currentTimeFilter = matchedFilter;
+          }
         }
 
         const initialSubredditButton = renderSubredditButtons();
@@ -1659,12 +1742,13 @@
         timeFilters.forEach((filter) => {
           const button = document.createElement("button");
           button.className =
-            "px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 bg-gray-200 text-gray-600 hover:bg-gray-300";
+            "px-3 py-1 text-sm rounded font-medium transition-colors duration-200 bg-white shadow-sm";
           button.style.color = "#FF4500";
           button.textContent = filter.displayName;
           button.addEventListener("click", (e) => {
             currentTimeFilter = filter;
             setActiveButton("#time-filter-selector button", e.currentTarget);
+            updateURL(currentSubreddit, currentTimeFilter);
             fetchImages(currentSubreddit, currentTimeFilter);
           });
           timeFragment.appendChild(button);
