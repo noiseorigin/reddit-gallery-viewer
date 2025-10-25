@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #ff4500;
+  --color-primary-light: #ff6d00;
+  --color-primary-lighter: #ffb6a3;
+  --color-primary-bg: #ffffff;
+  --color-accent: #818384;
+  --color-border: #cccccc;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+* {
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+svg {
+  transition: color 0.3s ease !important;
+}
+
+svg circle,
+svg path {
+  transition: stroke 0.3s ease, fill 0.3s ease, color 0.3s ease !important;
+}
+
+img {
+  transition: none !important;
+}
+
+.image-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-primary-bg);
+  border: 1px dashed var(--color-border);
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-align: center;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.image-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-lighter) 25%,
+    var(--color-accent) 50%,
+    var(--color-primary-lighter) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.retry-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-primary-bg);
+  border: 1px dashed var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  text-align: center;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background-color: var(--color-border);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles */
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

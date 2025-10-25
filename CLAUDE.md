@@ -1,100 +1,167 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# CLAUDE.md - Next.js Version
 
 ## Project Overview
 
-**Reddit Gallery Viewer** is a single-file, client-side web application that lets users browse any Reddit subreddit as a beautiful image gallery. It's production-ready and deployed on Vercel at https://reddit-gallery-viewer.vercel.app/
+**Reddit Gallery Viewer (Next.js Edition)** is a complete refactoring of the original single-file application into a modern, production-ready Next.js application with React components, TypeScript, and Tailwind CSS.
 
-### Key Characteristics
-- **Single HTML file** with embedded CSS and JavaScript (no build tools needed)
-- **Fully client-side** - no backend or authentication required
-- **SEO-optimized** with comprehensive meta tags and structured data
-- **Production deployment** via Vercel with automatic CI/CD
+### Key Improvements
+- **Type Safety**: Full TypeScript coverage
+- **Component Architecture**: Modular, reusable components
+- **Performance**: Optimized bundling, lazy loading, caching
+- **Developer Experience**: Hot module reloading, better debugging
+- **Maintainability**: Clear separation of concerns
 
 ---
 
 ## Architecture & Code Organization
 
-### File Structure
-- **index.html** (1190 lines) - Complete application (HTML + CSS + JavaScript)
-- **vercel.json** - Deployment configuration with security headers
-- **robots.txt** - SEO configuration for search engine crawling
-- **sitemap.xml** - XML sitemap for search engines
-- **.gitignore** - Standard Node/IDE/build exclusions
+### Directory Structure
 
-### Application Structure (inside index.html)
+```
+view-subreddit-as-gallery-nextjs/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx         # Root layout (SEO, metadata)
+│   │   ├── page.tsx           # Home page
+│   │   └── globals.css        # Global styles
+│   ├── components/            # React components (7 files)
+│   │   ├── GalleryPage.tsx    # Main container (~300 lines)
+│   │   ├── GalleryGrid.tsx    # Grid layout
+│   │   ├── GalleryImage.tsx   # Image card component
+│   │   ├── ImageModal.tsx     # Image preview modal
+│   │   ├── SubredditButtons.tsx
+│   │   ├── TimeFilterButtons.tsx
+│   │   └── FAQSection.tsx
+│   └── lib/                   # Utility functions
+│       ├── reddit.ts          # Reddit API (~200 lines)
+│       ├── cache.ts           # API caching (~40 lines)
+│       ├── colors.ts          # Color utilities (~100 lines)
+│       └── storage.ts         # LocalStorage helpers (~60 lines)
+├── public/
+│   ├── robots.txt
+│   └── sitemap.xml
+├── Configuration Files
+│   ├── package.json           # Dependencies & scripts
+│   ├── tsconfig.json          # TypeScript config
+│   ├── next.config.js         # Next.js settings
+│   ├── tailwind.config.ts     # Tailwind customization
+│   ├── postcss.config.js      # PostCSS configuration
+│   ├── .eslintrc.json         # ESLint rules
+│   └── vercel.json            # Vercel deployment config
+└── Documentation
+    ├── README.md              # Main documentation
+    ├── MIGRATION_GUIDE.md     # Detailed migration notes
+    └── QUICK_START.md         # Quick reference
+```
 
-#### 1. **Head Section** (Lines 1-165)
-- **SEO Meta Tags** (Lines 6-27): keywords, description, canonical URL, Open Graph, Twitter Cards
-- **JSON-LD Schema** (Lines 58-81): Structured data for search engines (WebApplication type)
-- **CSS Variables** (Lines 84-92): Reddit branding colors (primary: #FF4500 orange)
-- **Base Styles** (Lines 93-165): Tailwind + custom styles for modals, loading states, retries
+### Line Count Comparison
 
-#### 2. **HTML Body** (Lines 167-364)
-- **Header** (Lines 171-178): H1 title, subtitle, tagline
-- **Search Input** (Lines 181-207): Custom subreddit search with multiple format support
-- **Subreddit Buttons** (Lines 210-218): Pre-configured popular subreddits (7 items)
-- **Search History** (Lines 221-229): Recently viewed subreddits (dynamically rendered)
-- **Time Filters** (Lines 232-240): Today/This Week/This Month options
-- **Gallery Grid** (Lines 283-288): Responsive grid for image cards (1-4 columns)
-- **Modal Preview** (Lines 308-364): Full-screen image viewer with keyboard navigation
+| File/Component | Original | New | Type |
+|---|---|---|---|
+| Main file | 1190 | ~300 | GalleryPage.tsx |
+| Reddit API | (inline) | 200 | reddit.ts |
+| Color utils | (inline) | 100 | colors.ts |
+| Storage | (inline) | 60 | storage.ts |
+| Cache | (inline) | 40 | cache.ts |
+| Components | N/A | 600 | 7 .tsx files |
+| **Total** | 1190 | 2000 | Spread, more maintainable |
 
-#### 3. **JavaScript Application** (Lines 366-1189)
+---
 
-**Data & State Management:**
-- `subreddits` array (Line 392-400): 7 pre-configured subreddits with emoji names
-- `timeFilters` array (Line 402-406): 3 time period options
-- `apiCache` Map (Line 412): In-memory cache for Reddit API responses (5-minute TTL)
-- `localStorage`: Search history persisted to browser (max 10 items, SEARCH_HISTORY_KEY)
+## Core Functionality
 
-**Core Functions:**
+### 1. Gallery System (GalleryPage.tsx)
+- State management for subreddit, time filter, posts, modal
+- Fetches images from Reddit API
+- Handles URL parameters for bookmarking
+- Manages search history with localStorage
+- Real-time theme color application
 
-1. **API Layer** (Lines 444-479)
-   - `buildApiUrl()` - Creates Reddit API URL for top posts
-   - `fetchWithCache()` - Fetch with caching, User-Agent header, error handling
-   - Reddit API endpoints: `/r/{subreddit}/top/.json?t={time}&limit=100`
+### 2. Reddit API (lib/reddit.ts)
+- `fetchRedditAPI()` - Fetch with automatic caching
+- `buildApiUrl()` - Constructs Reddit API URLs
+- `parseSubredditName()` - Parses input (name, r/name, URL)
+- `filterImagePosts()` - Extracts image posts from response
+- `getPostImageSources()` - Gets placeholder + high-res image URLs
+- `loadPopularSubreddits()` - Fetches trending subreddits
 
-2. **Theme System** (Lines 483-774)
-   - `hexToRgb()`, `rgbToHex()` - Color conversion utilities
-   - `lightenColor()`, `darkenColor()` - Color manipulation with percentages
-   - `getColorBrightness()` - WCAG luminance calculation for accessibility
-   - `applyTheme()` - Applies colors to all UI elements, generates dynamic CSS
-   - Default theme: Reddit orange (#FF4500) with calculated light/light-lighter variants
+### 3. Color System (lib/colors.ts)
+- `hexToRgb()` / `rgbToHex()` - Color conversion
+- `lightenColor()` / `darkenColor()` - Color manipulation
+- `getColorBrightness()` - WCAG luminance calculation
+- `getTextColorForBackground()` - Accessibility support
+- `getOptimalBackgroundColor()` - Dynamic theme generation
 
-3. **Search & History** (Lines 410-442, 1058-1091)
-   - `getSearchHistory()` - Retrieve from localStorage
-   - `addToSearchHistory()` - Add to history, deduplicate, limit to 10
-   - `renderSearchHistory()` - Dynamically create history buttons, auto-hide when empty
-   - History auto-saves on each subreddit load
+### 4. Storage Layer (lib/storage.ts)
+- `getSearchHistory()` - Retrieve localStorage history
+- `addToSearchHistory()` - Add with deduplication
+- `readCachedPopularSubreddits()` - Cache management
+- `storePopularSubreddits()` - Cache write with TTL
 
-4. **Gallery Rendering** (Lines 944-1044)
-   - `fetchImages()` - Main function that loads, filters, and renders images
-   - Filters Reddit posts to image-only (post_hint==="image" or .jpg/.png/.gif)
-   - Lazy loads images beyond the first 12 (IntersectionObserver API)
-   - Implements 3-retry mechanism for failed image loads
+### 5. Caching System (lib/cache.ts)
+- Simple Map-based in-memory cache
+- 5-minute TTL for API responses
+- Reduces Reddit API rate limiting impact
 
-5. **Image Handling**
-   - `retryImageLoad()` - Retry failed images up to 3 times
-   - `initImageObserver()` - Lazy load images as user scrolls
-   - Placeholder shimmer animation during loading
+---
 
-6. **Modal & Navigation** (Lines 802-882)
-   - `openModal()` / `closeModal()` - Modal state management
-   - `updateModalContent()` - Navigate between images in gallery
-   - Keyboard shortcuts: Esc to close, Arrow Left/Right to navigate
-   - Mouse navigation: Previous/Next buttons
+## Component Architecture
 
-7. **Input Parsing** (Lines 777-800)
-   - `parseSubredditName()` - Accept multiple input formats:
-     - Direct: `photography`
-     - URL: `https://reddit.com/r/photography`
-     - Shorthand: `r/photography`
+### GalleryPage.tsx (Container Component)
+```typescript
+Key State:
+- subreddits: Array<{ name, displayName }>
+- currentSubreddit: string
+- currentTimeFilter: TimeFilter
+- posts: RedditPost[]
+- isLoading: boolean
+- error: string | null
+- modalIndex: number
+- isModalOpen: boolean
+- searchHistory: SearchHistoryItem[]
 
-8. **Initialization** (Lines 1126-1185)
-   - `initializeApp()` - DOMContentLoaded handler
-   - Creates all buttons dynamically
-   - Sets up event listeners for search, filters, modal
+Key Functions:
+- fetchImages() - Main data loading
+- handleSubredditSelect() - Change subreddit
+- handleCustomSubreddit() - Parse & load custom subreddit
+- handleShare() - Copy URL to clipboard
+```
+
+### Child Components
+- **GalleryGrid**: Maps posts to GalleryImage cards
+- **GalleryImage**: Individual image card with loading state
+- **ImageModal**: Full-screen image viewer with navigation
+- **SubredditButtons**: Subreddit selector with active state
+- **TimeFilterButtons**: Time period filter buttons
+- **FAQSection**: Frequently asked questions
+
+---
+
+## Data Flow
+
+```
+User Action (click subreddit)
+    ↓
+GalleryPage.handleSubredditSelect()
+    ↓
+setCurrentSubreddit() (state update)
+    ↓
+useEffect dependency triggers
+    ↓
+fetchImages() → fetchRedditAPI()
+    ↓
+Check cache (apiCache.get)
+    ↓
+If miss: fetch from Reddit API
+    ↓
+Cache result (apiCache.set)
+    ↓
+Filter posts (imagePostsOnly)
+    ↓
+setPosts() (state update)
+    ↓
+GalleryGrid renders with new posts
+```
 
 ---
 
@@ -102,116 +169,225 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Local Testing
 ```bash
-# Option 1: Direct browser access
-open index.html
-
-# Option 2: Python HTTP server (avoids CORS issues with external APIs)
-python3 -m http.server 8000
-# Visit http://localhost:8000
+npm install
+npm run dev
+# Visit http://localhost:3000
 ```
 
-### Making Changes
-- All changes are made to `index.html` (single file)
-- No build process needed - changes are immediately visible
-- Test thoroughly in browser before committing
+### TypeScript Checking
+```bash
+npm run type-check
+```
 
-### Common Tasks
+### Production Build
+```bash
+npm run build
+npm start
+```
 
-**Adding a new popular subreddit:**
-1. Edit the `subreddits` array in lines 392-400
-2. Add new entry: `{ name: "subreddit_name", displayName: "🎨 Display Name" }`
-3. The button will auto-render on page load
-
-**Changing color scheme:**
-1. Modify CSS variables in `:root` (lines 84-92)
-2. Update `defaultTheme` object (lines 483-487)
-3. The `applyTheme()` function will propagate colors automatically
-
-**Adjusting API cache duration:**
-- Line 413: `const CACHE_DURATION = 1000 * 60 * 5;` (currently 5 minutes)
-
-**Modifying search history limit:**
-- Line 417: `const MAX_HISTORY = 10;`
+### Linting
+```bash
+npm run lint
+```
 
 ---
 
-## SEO & Deployment Configuration
+## SEO & Metadata
 
-### SEO Setup
-- **Meta tags** optimized for search snippets (description, keywords)
-- **Open Graph** tags for social media sharing (Twitter, Facebook)
-- **JSON-LD Schema** identifies app as UtilityApplication
-- **Canonical URL** prevents duplicate content issues
-- **Sitemap** at `sitemap.xml` for search engine crawling
-- **robots.txt** configured to allow crawling and point to sitemap
+### Implemented in layout.tsx
+- **Title & Description**: Optimized for search snippets
+- **Keywords**: Relevant search terms
+- **Open Graph**: Social media sharing
+- **Twitter Cards**: X (Twitter) specific tags
+- **Canonical URL**: Prevents duplicate content
+- **JSON-LD Schema**: Structured data (WebApplication type)
+- **Robots & Sitemap**: Search engine crawling
 
-### Google Search Console Integration
-- Verification file support: Any `.html` file in root directory is deployed
-- Update robots.txt with production domain if needed
-- Sitemap should be auto-discovered at `/sitemap.xml`
-
-### Vercel Deployment
-- **Build command** (vercel.json line 2): Copies `index.html`, `.html` files, `robots.txt`, and `sitemap.xml` to public output
-- **Security headers** configured for X-Content-Type-Options, X-Frame-Options, etc.
-- **Cache-Control** header on index.html: 1 hour TTL for freshness
-- Auto-deployment on GitHub push (CI/CD via Vercel)
-
-### Google Analytics (Optional)
-- Template prepared in lines 47-56 (currently commented out)
-- To enable: Get measurement ID from https://analytics.google.com/
-- Replace `G-YOUR-MEASUREMENT-ID` and uncomment the script tag
+### Google Analytics
+- Measurement ID: G-SSS54C3THS
+- Tracks gallery views and user interactions
 
 ---
 
-## Important Implementation Details
+## Performance Features
 
-### Reddit API Rate Limiting
-- Public Reddit API: 60 requests per minute per IP
-- Solution: 5-minute in-memory cache reduces API calls significantly
-- No authentication needed for public subreddits
+### Image Loading
+1. **Lazy Loading**: IntersectionObserver for off-screen images
+2. **Progressive Loading**:
+   - Load placeholder image first (small, fast)
+   - Upgrade to high-resolution in background
+   - Timeout fallback for slow networks
+3. **Error Handling**: Automatic retries with exponential backoff
 
-### Image Loading Failures
-- Common cause: CORS restrictions on third-party hosted images
-- Solution: 3-retry mechanism with exponential backoff
-- Known limitation: Some image hosts block bot requests
+### API Optimization
+- **Caching**: 5-minute in-memory cache
+- **User-Agent Spoofing**: Better compatibility with Reddit API
+- **CORS Headers**: Proper fetch configuration
+- **Rate Limiting**: Max 100 posts per request (Reddit limit)
 
-### Browser localStorage
-- Search history uses `localStorage` (persistent across sessions)
-- No personal data collection - only subreddit names
-- Safe to use across all modern browsers
+### Code Optimization
+- **Code Splitting**: Next.js automatic bundle splitting
+- **Tree Shaking**: Unused code elimination
+- **Minification**: Production bundle optimization
+- **Compression**: Gzip by default on Vercel
 
-### Performance Optimizations
-- Lazy loading: Images beyond first 12 are loaded on scroll (IntersectionObserver)
-- API caching: Prevents redundant Reddit API calls
-- History caching: localStorage reduces initial page interactions
-- First 12 images load immediately for perceived performance
+---
+
+## Configuration Details
+
+### Tailwind CSS (tailwind.config.ts)
+```typescript
+theme.extend.colors.reddit = {
+  orange: '#FF4500',
+  'orange-light': '#ff6d00',
+  'orange-lighter': '#ffb6a3',
+}
+// Custom animation for image shimmer
+animation.shimmer = 'shimmer 1.5s infinite'
+```
+
+### Next.js Config (next.config.js)
+- Image optimization with external domain allowlist
+- Security headers (X-Content-Type-Options, etc.)
+- Cache-Control headers for index.html (1 hour)
+- Vercel deployment optimizations
+
+### TypeScript (tsconfig.json)
+- Strict mode enabled
+- Path alias: @/* → src/*
+- ES2020 target
+- DOM + Node types
 
 ---
 
 ## Testing Checklist
 
 Before deploying changes:
-- [ ] Test on Chrome, Firefox, Safari, and Edge
-- [ ] Test mobile responsiveness (iOS + Android)
-- [ ] Verify search works with all 3 input formats
-- [ ] Check that image loading works with lazy loading
-- [ ] Confirm modal keyboard navigation (Escape, Arrow keys)
-- [ ] Verify search history persists across page reloads
-- [ ] Test with slow network (DevTools throttling) for UX
+- [ ] `npm run build` succeeds without errors
+- [ ] `npm run type-check` shows no type errors
+- [ ] Search works with all 3 input formats
+- [ ] Image loading works with lazy loading
+- [ ] Modal keyboard navigation (Esc, Arrows)
+- [ ] Search history persists on reload
+- [ ] Mobile responsiveness (iOS + Android)
+- [ ] No console JavaScript errors
+- [ ] Analytics tracking works
 
 ---
 
-## Known Limitations & Future Improvements
+## Deployment
 
-**Current Limitations:**
-1. Reddit API returns max 100 posts per request (pagination not implemented)
+### To Vercel
+```bash
+git add .
+git commit -m "Deploy Next.js version"
+git push origin main
+```
+
+Vercel automatically:
+1. Detects Next.js project
+2. Runs `next build`
+3. Deploys optimized output
+4. Sets security headers from vercel.json
+5. Enables automatic HTTPS
+
+### Environment Variables
+Currently none required. Optional:
+- `NEXT_PUBLIC_GA_ID` - Override Google Analytics ID
+
+---
+
+## Key Differences from Original
+
+| Aspect | Original | Next.js |
+|---|---|---|
+| **File Structure** | 1 HTML file | Multiple components |
+| **Language** | Vanilla JS | TypeScript |
+| **Styling** | Tailwind CDN | Tailwind npm |
+| **State** | Global variables | React hooks |
+| **DOM Updates** | Manual | React rendering |
+| **Routing** | Hash-based | URL params |
+| **Build** | None | webpack/turbopack |
+| **Type Safety** | None | Full |
+| **SSR** | None | Enabled |
+
+---
+
+## Future Enhancement Ideas
+
+- [ ] Dark mode toggle
+- [ ] Image search/filtering
+- [ ] Post metadata display
+- [ ] Pagination support
+- [ ] Image download
+- [ ] Social share improvements
+- [ ] PWA support
+- [ ] User preferences persistence
+- [ ] Comment thread preview
+- [ ] Trending subreddits sidebar
+
+---
+
+## Maintenance Notes
+
+### Adding New Features
+1. Create component in `src/components/`
+2. Import in GalleryPage.tsx
+3. Add TypeScript interfaces in component file
+4. Update related lib/ utilities if needed
+
+### Updating Styles
+1. Edit `src/app/globals.css` for global styles
+2. Use Tailwind classes in JSX
+3. Keep color theme in PRIMARY_COLOR constant
+
+### API Changes
+1. Modify `lib/reddit.ts`
+2. Update types in function signatures
+3. Update tests if applicable
+
+### Dependency Updates
+```bash
+npm update
+npm run type-check  # Verify compatibility
+npm run build       # Test production build
+```
+
+---
+
+## Known Limitations
+
+1. Reddit API max 100 posts per request (no pagination)
 2. Private subreddits cannot be accessed
-3. Some third-party hosted images may fail due to CORS
-4. Video posts are filtered out (image-only gallery)
+3. Some third-party images blocked by CORS
+4. Videos filtered out (image gallery only)
+5. No authentication (public subreddits only)
 
-**Potential Enhancements:**
-- Pagination support for browsing beyond top 100
-- Search filtering by post score, comments, date
-- Dark mode toggle
-- Share gallery functionality
-- Post title/metadata display in gallery view
+---
+
+## Support & Resources
+
+- **Documentation**: README.md
+- **Migration Guide**: MIGRATION_GUIDE.md
+- **Quick Start**: QUICK_START.md
+- **Next.js Docs**: https://nextjs.org/docs
+- **React Docs**: https://react.dev
+- **Tailwind Docs**: https://tailwindcss.com
+
+---
+
+## Version Info
+
+- **Version**: 2.0.0 (Next.js Refactor)
+- **Last Updated**: October 2024
+- **Technology Stack**:
+  - Next.js 15
+  - React 19
+  - TypeScript 5
+  - Tailwind CSS 3.4
+- **Node Version**: 18+
+- **Package Manager**: npm
+
+---
+
+Created with attention to code quality, performance, and maintainability.

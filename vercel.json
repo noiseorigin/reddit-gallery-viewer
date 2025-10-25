@@ -1,19 +1,9 @@
 {
-  "buildCommand": "mkdir -p public && cp index.html public/ && cp *.html public/ 2>/dev/null || true && cp robots.txt public/ 2>/dev/null || true && cp sitemap.xml public/ 2>/dev/null || true && cp *.png public/ 2>/dev/null || true",
-  "outputDirectory": "public",
-  "env": {},
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
   "headers": [
     {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
+      "source": "/:path*",
       "headers": [
         {
           "key": "X-Content-Type-Options",
@@ -30,15 +20,12 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
         }
       ]
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/favicon.ico",
-      "destination": "/api/favicon",
-      "permanent": false
     }
   ]
 }
