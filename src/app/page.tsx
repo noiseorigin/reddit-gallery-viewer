@@ -2,12 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { GalleryPage } from '@/components/GalleryPage';
 
-// Generate dynamic metadata based on URL parameters
+// Generate metadata
 export async function generateMetadata(): Promise<Metadata> {
-  // Get URL parameters from request if available (in dynamic rendering context)
-  // Since this is a client-side app, we'll provide base metadata
-  // and client-side updates will handle dynamic titles
-
   return {
     title: 'Reddit Gallery Viewer - Browse Any Subreddit as Image Gallery | Free',
     description:
@@ -43,19 +39,23 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function GalleryContent() {
+function GalleryPageWrapper() {
   return <GalleryPage />;
 }
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading gallery...</p>
-      </div>
-    </div>}>
-      <GalleryContent />
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading gallery...</p>
+          </div>
+        </div>
+      }
+    >
+      <GalleryPageWrapper />
     </Suspense>
   );
 }
