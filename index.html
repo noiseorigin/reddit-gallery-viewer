@@ -739,31 +739,49 @@
         if (apiCache.has(cacheKey)) {
           const cached = apiCache.get(cacheKey);
           if (now - cached.time < CACHE_DURATION) {
-            console.log("Using cached data for:", url);
+            if (window.__rgvDebug) {
+              console.log("Using cached data for:", url);
+            }
             return cached.data;
           }
         }
 
         try {
-          // Detect mobile user agent
-          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          // Detect mobile user agent with better mobile detection
+          const isMobile = /iPhone|iPad|iPod|Android|Mobile|Touch/i.test(navigator.userAgent);
+
+          // Use a more universal User-Agent that works across devices
           const userAgent = isMobile
-            ? "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+            ? "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
             : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+          if (window.__rgvDebug) {
+            console.log("[API FETCH]", { url, isMobile, userAgent });
+          }
 
           const response = await fetch(url, {
             headers: {
               "User-Agent": userAgent,
+              "Accept": "application/json",
+              "Accept-Language": "en-US,en;q=0.9",
             },
+            // Add mode: 'cors' explicitly for better CORS handling
+            mode: 'cors',
+            credentials: 'omit',
           });
 
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          if (!response.ok) {
+            if (window.__rgvDebug) {
+              console.error("[API ERROR]", { status: response.status, url });
+            }
+            throw new Error(`HTTP ${response.status}`);
+          }
 
           const data = await response.json();
           apiCache.set(cacheKey, { data, time: now });
           return data;
         } catch (error) {
-          console.error("Fetch error:", error);
+          console.error("[API FETCH ERROR]:", error, { url });
           throw error;
         }
       }
