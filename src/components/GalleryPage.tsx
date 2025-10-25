@@ -28,6 +28,8 @@ import { GalleryGrid } from "./GalleryGrid";
 import { SubredditButtons } from "./SubredditButtons";
 import { TimeFilterButtons, TimeFilter } from "./TimeFilterButtons";
 import { SortFilterButtons, SortOption, SORT_OPTIONS } from "./SortFilterButtons";
+import { GridSizeButtons, GridSize, GRID_SIZES } from "./GridSizeButtons";
+import { DropdownMenu } from "./DropdownMenu";
 import { ImageModal } from "./ImageModal";
 import { FAQSection } from "./FAQSection";
 
@@ -56,6 +58,7 @@ export function GalleryPage() {
   const [currentSubreddit, setCurrentSubreddit] = useState("photography");
   const [currentTimeFilter, setCurrentTimeFilter] = useState(TIME_FILTERS[0]);
   const [currentSort, setCurrentSort] = useState(SORT_OPTIONS[2]); // Default to "Top"
+  const [currentGridSize, setCurrentGridSize] = useState(GRID_SIZES[1]); // Default to "Medium"
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +116,29 @@ export function GalleryPage() {
   useEffect(() => {
     setSearchHistory(getSearchHistory());
   }, []);
+
+  // Update document title dynamically based on current subreddit
+  useEffect(() => {
+    const matched = subreddits.find((s) => s.name === currentSubreddit);
+    const displayLabel = matched?.displayName || `/r/${currentSubreddit}`;
+
+    // Update page title for SEO
+    const title = `r/${currentSubreddit} Gallery - ${currentSort.displayName} Images | Reddit Gallery Viewer`;
+    const description = `Browse ${displayLabel} subreddit as a beautiful image gallery. View ${currentSort.displayName.toLowerCase()} images from the last ${currentTimeFilter.displayName.toLowerCase()}. Free, no sign-up needed.`;
+
+    document.title = title;
+
+    // Update meta description dynamically
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', description);
+    } else {
+      const newMeta = document.createElement('meta') as HTMLMetaElement;
+      newMeta.name = 'description';
+      newMeta.content = description;
+      document.head.appendChild(newMeta);
+    }
+  }, [currentSubreddit, currentSort, currentTimeFilter, subreddits]);
 
   // Fetch images
   const fetchImages = useCallback(async () => {
@@ -176,6 +202,11 @@ export function GalleryPage() {
     }
   };
 
+  const handleClearHistory = () => {
+    localStorage.removeItem("searchHistory");
+    setSearchHistory([]);
+  };
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
       setShareMessage("✓ Copied to clipboard!");
@@ -204,99 +235,150 @@ export function GalleryPage() {
       `}</style>
 
       <div className="container mx-auto p-4 md:p-8">
-        {/* Header */}
+        {/* Header with Search & Dropdowns */}
         <header className="mb-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden">
-              <img
-                src="/rgv_logo.png"
-                alt="Reddit Gallery Viewer Logo"
-                className="w-full h-full object-contain"
-              />
+          <div className="flex items-start justify-between gap-3 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden">
+                <img
+                  src="/rgv_logo.png"
+                  alt="Reddit Gallery Viewer Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h1
+                  className="text-4xl font-bold"
+                  style={{ color: PRIMARY_COLOR }}
+                >
+                  Reddit Gallery Viewer
+                </h1>
+                <p className="text-lg mt-1" style={{ color: "#ff6d00" }}>
+                  Free Online Tool to Browse Subreddits as Image Galleries
+                </p>
+              </div>
             </div>
-            <div>
-              <h1
-                className="text-4xl font-bold"
-                style={{ color: PRIMARY_COLOR }}
-              >
-                Reddit Gallery Viewer
-              </h1>
-              <p className="text-lg mt-1" style={{ color: "#ff6d00" }}>
-                Free Online Tool to Browse Subreddits as Image Galleries
-              </p>
+
+            {/* Right Controls - Search + Dropdowns */}
+            <div className="flex flex-col gap-3 flex-shrink-0">
+              {/* Search Input */}
+              <div className="w-64">
+                <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase">
+                  🔍 Search
+                </label>
+                <div className="flex gap-1">
+                  <input
+                    type="text"
+                    placeholder="photography..."
+                    className="flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none text-sm text-gray-800"
+                    style={{ borderColor: PRIMARY_COLOR }}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        const target = e.target as HTMLInputElement;
+                        handleCustomSubreddit(target.value);
+                        target.value = "";
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={(e) => {
+                      const input = (
+                        e.currentTarget.previousElementSibling as HTMLInputElement
+                      )?.value;
+                      if (input) {
+                        handleCustomSubreddit(input);
+                        (
+                          e.currentTarget.previousElementSibling as HTMLInputElement
+                        ).value = "";
+                      }
+                    }}
+                    className="px-4 text-white font-semibold rounded-lg transition-colors text-sm"
+                    style={{ backgroundColor: PRIMARY_COLOR }}
+                  >
+                    Go
+                  </button>
+                </div>
+              </div>
+
+              {/* Dropdowns */}
+              <div className="flex gap-2">
+                <DropdownMenu
+                  icon="📅"
+                  label="Time"
+                  items={TIME_FILTERS}
+                  currentItem={currentTimeFilter}
+                  onSelect={setCurrentTimeFilter}
+                  primaryColor={PRIMARY_COLOR}
+                />
+                <DropdownMenu
+                  icon="✨"
+                  label="Sort"
+                  items={SORT_OPTIONS}
+                  currentItem={currentSort}
+                  onSelect={setCurrentSort}
+                  primaryColor={PRIMARY_COLOR}
+                />
+                <DropdownMenu
+                  icon="📐"
+                  label="Size"
+                  items={GRID_SIZES}
+                  currentItem={currentGridSize}
+                  onSelect={setCurrentGridSize}
+                  primaryColor={PRIMARY_COLOR}
+                />
+              </div>
             </div>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-gray-600">
             View top images from any Reddit subreddit with beautiful galleries
             and dynamic color themes.
           </p>
         </header>
 
-        {/* Search Input */}
-        <div className="flex justify-center mb-8">
-          <div className="w-full max-w-md">
-            <label className="block text-sm text-gray-600 mb-2">
-              🔍 Search for any Subreddit
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="e.g., photography, MostBeautiful..."
-                className="flex-1 px-4 py-2 border-2 rounded-lg focus:outline-none text-gray-800"
-                style={{ borderColor: PRIMARY_COLOR }}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    const target = e.target as HTMLInputElement;
-                    handleCustomSubreddit(target.value);
-                    target.value = "";
-                  }
-                }}
-              />
-              <button
-                onClick={(e) => {
-                  const input = (
-                    e.currentTarget.previousElementSibling as HTMLInputElement
-                  )?.value;
-                  if (input) {
-                    handleCustomSubreddit(input);
-                    (
-                      e.currentTarget.previousElementSibling as HTMLInputElement
-                    ).value = "";
-                  }
-                }}
-                className="px-6 text-white font-semibold rounded-lg transition-colors"
-                style={{ backgroundColor: PRIMARY_COLOR }}
-              >
-                Go
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              💡 Tip: Search by name, URL, or r/name format
-            </p>
-          </div>
-        </div>
-
         {/* Filters Section */}
         <div className="mb-6 bg-gray-50 p-4 rounded-lg">
           {/* Popular Subreddits */}
           <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">
-              Popular Subreddits
-            </p>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase">
+                Popular Subreddits
+              </p>
+              <button
+                onClick={handleShare}
+                className="px-2 py-1 rounded text-xs font-semibold transition-colors text-white"
+                style={{ backgroundColor: PRIMARY_COLOR }}
+                title="Share current gallery"
+              >
+                🔗
+              </button>
+            </div>
             <SubredditButtons
               subreddits={subreddits}
               currentSubreddit={currentSubreddit}
               onSelect={handleSubredditSelect}
               primaryColor={PRIMARY_COLOR}
             />
+            {shareMessage && (
+              <p className="text-xs text-green-600 font-semibold mt-2">
+                {shareMessage}
+              </p>
+            )}
           </div>
 
           {/* Recently Viewed */}
           {searchHistory.length > 0 && (
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">
-                Recently Viewed
-              </p>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase">
+                  Recently Viewed
+                </p>
+                <button
+                  onClick={handleClearHistory}
+                  className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {searchHistory.map((item) => (
                   <button
@@ -310,48 +392,6 @@ export function GalleryPage() {
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Time Filter */}
-          <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">
-              📅 Time Period
-            </p>
-            <TimeFilterButtons
-              filters={TIME_FILTERS}
-              currentFilter={currentTimeFilter}
-              onSelect={setCurrentTimeFilter}
-              primaryColor={PRIMARY_COLOR}
-            />
-          </div>
-
-          {/* Sort Filter */}
-          <div>
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">
-              ✨ Sort By
-            </p>
-            <SortFilterButtons
-              options={SORT_OPTIONS}
-              currentSort={currentSort}
-              onSelect={setCurrentSort}
-              primaryColor={PRIMARY_COLOR}
-            />
-          </div>
-        </div>
-
-        {/* Share Button */}
-        <div className="flex justify-center mb-6">
-          <button
-            onClick={handleShare}
-            className="px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2 text-white"
-            style={{ backgroundColor: PRIMARY_COLOR }}
-          >
-            <span>🔗 Share Gallery</span>
-          </button>
-          {shareMessage && (
-            <span className="ml-3 text-green-600 text-sm font-semibold">
-              {shareMessage}
-            </span>
           )}
         </div>
 
@@ -376,6 +416,7 @@ export function GalleryPage() {
           onImageLoad={() => {}}
           isLoading={isLoading}
           error={error}
+          gridCols={currentGridSize.cols}
         />
 
         {/* FAQ Section */}

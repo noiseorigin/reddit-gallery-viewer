@@ -10,6 +10,7 @@ interface GalleryGridProps {
   onImageLoad: (index: number) => void;
   isLoading: boolean;
   error: string | null;
+  gridCols?: number;
 }
 
 export function GalleryGrid({
@@ -19,6 +20,7 @@ export function GalleryGrid({
   onImageLoad,
   isLoading,
   error,
+  gridCols = 3,
 }: GalleryGridProps) {
   if (error) {
     return (
@@ -69,8 +71,14 @@ export function GalleryGrid({
     );
   }
 
+  const gridColsClass = {
+    2: 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+  }[gridCols as 2 | 3 | 4] || 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3';
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    <div className={`grid ${gridColsClass} gap-4 md:gap-6`}>
       {posts.map((post, index) => (
         <GalleryImage
           key={post.id}

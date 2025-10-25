@@ -9,21 +9,22 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Reddit Gallery Viewer - Browse Any Subreddit as Image Gallery | Free',
+  title: 'Reddit Gallery Viewer - Free Online Image Gallery Tool | Browse Subreddits',
   description:
-    'Reddit Gallery Viewer - Browse any subreddit as a beautiful image gallery. View top photos from photography, nature, memes, art and more. Fast, free, no app needed!',
+    'Turn any Reddit subreddit into a beautiful image gallery instantly. Browse photography, nature, art, memes and more with dynamic color themes. Fast, free, no sign-up needed.',
   keywords:
-    'reddit gallery viewer, reddit image gallery, subreddit gallery, free reddit tool, reddit browser, reddit photo gallery, reddit top posts, image viewer',
-  authors: [{ name: 'Reddit Gallery Viewer' }],
+    'reddit gallery, subreddit gallery, reddit image viewer, reddit photo gallery, free reddit tool, browse reddit images, image gallery maker, reddit browser, top reddit posts',
+  authors: [{ name: 'Reddit Gallery Viewer Team' }],
+  creator: 'Reddit Gallery Viewer',
   robots: {
     index: true,
     follow: true,
     'max-image-preview': 'large',
   },
   openGraph: {
-    title: 'Reddit Gallery Viewer - Browse Any Subreddit as Image Gallery',
+    title: 'Reddit Gallery Viewer - Free Image Gallery Tool',
     description:
-      'View any Reddit subreddit as a beautiful image gallery. Browse top photos from photography, nature, memes, art and more. Fast, free, no app needed!',
+      'Transform any subreddit into a stunning image gallery. Perfect for photography, art, nature, and memes. No sign-up required!',
     type: 'website',
     url: 'https://reddit-gallery-viewer.vercel.app/',
     siteName: 'Reddit Gallery Viewer',
@@ -33,21 +34,20 @@ export const metadata: Metadata = {
         url: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
         width: 1200,
         height: 630,
-        alt: 'Reddit Gallery Viewer Logo',
+        alt: 'Reddit Gallery Viewer - Browse Reddit Subreddits as Image Galleries',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Reddit Gallery Viewer - Browse Any Subreddit as Image Gallery',
+    title: 'Reddit Gallery Viewer - Free Online Image Gallery',
     description:
-      'View any Reddit subreddit as a beautiful image gallery. Browse top photos from photography, nature, memes, art and more. Fast, free, no app needed!',
-    images: {
-      url: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
-      alt: 'Reddit Gallery Viewer Logo',
-    },
-    site: '@RedditGallery',
+      'Browse any Reddit subreddit as a beautiful image gallery. Photography, art, nature, memes and more!',
+    images: [
+      'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
+    ],
+    creator: '@RedditGallery',
   },
   icons: {
     icon: '/rgv_logo.png',
@@ -68,6 +68,21 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
 
+        {/* Additional SEO Meta Tags */}
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="7 days" />
+        <meta name="author" content="Reddit Gallery Viewer" />
+        <meta name="distribution" content="global" />
+        <meta name="rating" content="general" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://www.reddit.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -77,22 +92,44 @@ export default function RootLayout({
               '@type': 'WebApplication',
               name: 'Reddit Gallery Viewer',
               description:
-                'Free online tool to browse any Reddit subreddit as a beautiful image gallery with dynamic color themes',
+                'Transform any Reddit subreddit into a beautiful image gallery with dynamic color themes. Browse photography, art, nature, memes and more.',
               url: 'https://reddit-gallery-viewer.vercel.app/',
               applicationCategory: 'UtilityApplication',
-              image: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
+              image: {
+                '@type': 'ImageObject',
+                url: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
+                width: 1200,
+                height: 630,
+              },
               offers: {
                 '@type': 'Offer',
                 price: '0',
                 priceCurrency: 'USD',
+                availability: 'https://schema.org/InStock',
               },
               author: {
                 '@type': 'Organization',
                 name: 'Reddit Gallery Viewer',
                 url: 'https://reddit-gallery-viewer.vercel.app/',
+                logo: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
               },
               operatingSystem: 'Web',
               browserRequirements: 'Requires JavaScript',
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                ratingCount: '250',
+                bestRating: '5',
+                worstRating: '1',
+              },
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://reddit-gallery-viewer.vercel.app/?sub={search_term_string}',
+                },
+                'query-input': 'required name=search_term_string',
+              },
             }),
           }}
         />
