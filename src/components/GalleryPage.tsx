@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   buildApiUrl,
   fetchRedditAPI,
@@ -10,46 +10,61 @@ import {
   parseSubredditName,
   RedditPost,
   RedditResponse,
-} from '@/lib/reddit';
-import { addToSearchHistory, getSearchHistory, readCachedPopularSubreddits, storePopularSubreddits } from '@/lib/storage';
-import { getOptimalBackgroundColor, lightenColor, darkenColor, getColorBrightness, getTextColorForBackground } from '@/lib/colors';
-import { GalleryGrid } from './GalleryGrid';
-import { SubredditButtons } from './SubredditButtons';
-import { TimeFilterButtons, TimeFilter } from './TimeFilterButtons';
-import { ImageModal } from './ImageModal';
-import { FAQSection } from './FAQSection';
+} from "@/lib/reddit";
+import {
+  addToSearchHistory,
+  getSearchHistory,
+  readCachedPopularSubreddits,
+  storePopularSubreddits,
+} from "@/lib/storage";
+import {
+  getOptimalBackgroundColor,
+  lightenColor,
+  darkenColor,
+  getColorBrightness,
+  getTextColorForBackground,
+} from "@/lib/colors";
+import { GalleryGrid } from "./GalleryGrid";
+import { SubredditButtons } from "./SubredditButtons";
+import { TimeFilterButtons, TimeFilter } from "./TimeFilterButtons";
+import { SortFilterButtons, SortOption, SORT_OPTIONS } from "./SortFilterButtons";
+import { ImageModal } from "./ImageModal";
+import { FAQSection } from "./FAQSection";
 
 const DEFAULT_SUBREDDITS = [
-  { name: 'photography', displayName: '📸 Photography' },
-  { name: 'EarthPorn', displayName: '🌍 Nature' },
-  { name: 'CatsStandingUp', displayName: '🐱 Cats' },
-  { name: 'InteriorDesign', displayName: '🏠 Interior Design' },
-  { name: 'Art', displayName: '🎨 Art' },
-  { name: 'FoodPorn', displayName: '🍕 Food' },
-  { name: 'houseplants', displayName: '🌱 Houseplants' },
+  { name: "photography", displayName: "📸 Photography" },
+  { name: "EarthPorn", displayName: "🌍 Nature" },
+  { name: "CatsStandingUp", displayName: "🐱 Cats" },
+  { name: "InteriorDesign", displayName: "🏠 Interior Design" },
+  { name: "Art", displayName: "🎨 Art" },
+  { name: "FoodPorn", displayName: "🍕 Food" },
+  { name: "houseplants", displayName: "🌱 Houseplants" },
 ];
 
 const TIME_FILTERS: TimeFilter[] = [
-  { name: 'day', displayName: '📆 Today' },
-  { name: 'week', displayName: '📅 This Week' },
-  { name: 'month', displayName: '📊 This Month' },
+  { name: "day", displayName: "📆 Today" },
+  { name: "week", displayName: "📅 This Week" },
+  { name: "month", displayName: "📊 This Month" },
 ];
 
-const PRIMARY_COLOR = '#FF4500';
+const PRIMARY_COLOR = "#FF4500";
 
 export function GalleryPage() {
   const searchParams = useSearchParams();
 
   const [subreddits, setSubreddits] = useState(DEFAULT_SUBREDDITS);
-  const [currentSubreddit, setCurrentSubreddit] = useState('photography');
+  const [currentSubreddit, setCurrentSubreddit] = useState("photography");
   const [currentTimeFilter, setCurrentTimeFilter] = useState(TIME_FILTERS[0]);
+  const [currentSort, setCurrentSort] = useState(SORT_OPTIONS[2]); // Default to "Top"
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalIndex, setModalIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<Array<{ name: string; displayName: string }>>([]);
-  const [shareMessage, setShareMessage] = useState('');
+  const [searchHistory, setSearchHistory] = useState<
+    Array<{ name: string; displayName: string }>
+  >([]);
+  const [shareMessage, setShareMessage] = useState("");
 
   // Load popular subreddits on mount
   useEffect(() => {
@@ -74,8 +89,9 @@ export function GalleryPage() {
 
   // Load URL parameters
   useEffect(() => {
-    const sub = searchParams.get('sub');
-    const time = searchParams.get('time');
+    const sub = searchParams.get("sub");
+    const time = searchParams.get("time");
+    const sort = searchParams.get("sort");
 
     if (sub) {
       const parsed = parseSubredditName(sub);
@@ -85,6 +101,11 @@ export function GalleryPage() {
     if (time) {
       const filter = TIME_FILTERS.find((f) => f.name === time);
       if (filter) setCurrentTimeFilter(filter);
+    }
+
+    if (sort) {
+      const sortOption = SORT_OPTIONS.find((s) => s.name === sort);
+      if (sortOption) setCurrentSort(sortOption);
     }
   }, [searchParams]);
 
@@ -99,7 +120,7 @@ export function GalleryPage() {
     setError(null);
 
     try {
-      const url = buildApiUrl(currentSubreddit, currentTimeFilter.name);
+      const url = buildApiUrl(currentSubreddit, currentTimeFilter.name, currentSort.name);
       const data: RedditResponse = await fetchRedditAPI(url);
 
       const filteredPosts = filterImagePosts(
@@ -108,7 +129,9 @@ export function GalleryPage() {
       );
 
       if (filteredPosts.length === 0) {
-        setError(`No image posts found in /r/${currentSubreddit} (${currentTimeFilter.displayName}).`);
+        setError(
+          `No image posts found in /r/${currentSubreddit} (${currentSort.displayName}).`
+        );
         setPosts([]);
       } else {
         setPosts(filteredPosts);
@@ -122,16 +145,17 @@ export function GalleryPage() {
 
       // Update URL
       const url_obj = new URL(window.location.href);
-      url_obj.searchParams.set('sub', currentSubreddit);
-      url_obj.searchParams.set('time', currentTimeFilter.name);
-      window.history.replaceState(null, '', url_obj.toString());
+      url_obj.searchParams.set("sub", currentSubreddit);
+      url_obj.searchParams.set("time", currentTimeFilter.name);
+      url_obj.searchParams.set("sort", currentSort.name);
+      window.history.replaceState(null, "", url_obj.toString());
     } catch (err) {
-      setError('Failed to load images. Please try again later.');
+      setError("Failed to load images. Please try again later.");
       setPosts([]);
     } finally {
       setIsLoading(false);
     }
-  }, [currentSubreddit, currentTimeFilter, subreddits]);
+  }, [currentSubreddit, currentTimeFilter, currentSort, subreddits]);
 
   // Fetch images when parameters change
   useEffect(() => {
@@ -148,19 +172,20 @@ export function GalleryPage() {
     if (parsed) {
       setCurrentSubreddit(parsed);
     } else {
-      alert('Invalid subreddit name or link format.');
+      alert("Invalid subreddit name or link format.");
     }
   };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      setShareMessage('✓ Copied to clipboard!');
-      setTimeout(() => setShareMessage(''), 2000);
+      setShareMessage("✓ Copied to clipboard!");
+      setTimeout(() => setShareMessage(""), 2000);
     });
   };
 
   const matchedSubreddit = subreddits.find((s) => s.name === currentSubreddit);
-  const displayLabel = matchedSubreddit?.displayName || `/r/${currentSubreddit}`;
+  const displayLabel =
+    matchedSubreddit?.displayName || `/r/${currentSubreddit}`;
 
   // Apply theme colors
   const light = lightenColor(PRIMARY_COLOR, 30);
@@ -182,20 +207,28 @@ export function GalleryPage() {
         {/* Header */}
         <header className="mb-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-12 w-12 flex-shrink-0 bg-reddit-orange rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              📸
+            <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden">
+              <img
+                src="/rgv_logo.png"
+                alt="Reddit Gallery Viewer Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <h1 className="text-4xl font-bold" style={{ color: PRIMARY_COLOR }}>
+              <h1
+                className="text-4xl font-bold"
+                style={{ color: PRIMARY_COLOR }}
+              >
                 Reddit Gallery Viewer
               </h1>
-              <p className="text-lg mt-1" style={{ color: '#ff6d00' }}>
+              <p className="text-lg mt-1" style={{ color: "#ff6d00" }}>
                 Free Online Tool to Browse Subreddits as Image Galleries
               </p>
             </div>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            View top images from any Reddit subreddit with beautiful galleries and dynamic color themes.
+            View top images from any Reddit subreddit with beautiful galleries
+            and dynamic color themes.
           </p>
         </header>
 
@@ -212,19 +245,23 @@ export function GalleryPage() {
                 className="flex-1 px-4 py-2 border-2 rounded-lg focus:outline-none text-gray-800"
                 style={{ borderColor: PRIMARY_COLOR }}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     const target = e.target as HTMLInputElement;
                     handleCustomSubreddit(target.value);
-                    target.value = '';
+                    target.value = "";
                   }
                 }}
               />
               <button
                 onClick={(e) => {
-                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement)?.value;
+                  const input = (
+                    e.currentTarget.previousElementSibling as HTMLInputElement
+                  )?.value;
                   if (input) {
                     handleCustomSubreddit(input);
-                    (e.currentTarget.previousElementSibling as HTMLInputElement).value = '';
+                    (
+                      e.currentTarget.previousElementSibling as HTMLInputElement
+                    ).value = "";
                   }
                 }}
                 className="px-6 text-white font-semibold rounded-lg transition-colors"
@@ -276,7 +313,7 @@ export function GalleryPage() {
           )}
 
           {/* Time Filter */}
-          <div>
+          <div className="mb-4">
             <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">
               📅 Time Period
             </p>
@@ -284,6 +321,19 @@ export function GalleryPage() {
               filters={TIME_FILTERS}
               currentFilter={currentTimeFilter}
               onSelect={setCurrentTimeFilter}
+              primaryColor={PRIMARY_COLOR}
+            />
+          </div>
+
+          {/* Sort Filter */}
+          <div>
+            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase">
+              ✨ Sort By
+            </p>
+            <SortFilterButtons
+              options={SORT_OPTIONS}
+              currentSort={currentSort}
+              onSelect={setCurrentSort}
               primaryColor={PRIMARY_COLOR}
             />
           </div>
@@ -311,7 +361,7 @@ export function GalleryPage() {
             {`Reddit ${matchedSubreddit?.name || currentSubreddit} Gallery`}
           </h2>
           <p className="text-gray-600 mt-2">
-            {`Top images from ${displayLabel} (${currentTimeFilter.displayName})`}
+            {`${currentSort.displayName} images from ${displayLabel} (${currentTimeFilter.displayName})`}
           </p>
         </div>
 

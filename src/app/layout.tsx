@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    maxImagePreview: 'large',
+    'max-image-preview': 'large',
   },
   openGraph: {
     title: 'Reddit Gallery Viewer - Browse Any Subreddit as Image Gallery',
@@ -54,7 +54,6 @@ export const metadata: Metadata = {
     apple: '/rgv_logo.png',
   },
   themeColor: '#FF4500',
-  canonical: 'https://reddit-gallery-viewer.vercel.app/',
 };
 
 export default function RootLayout({
