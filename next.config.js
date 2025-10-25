@@ -5,6 +5,7 @@ const nextConfig = {
     unoptimized: true,
     domains: ['www.reddit.com', 'reddit.com', 'i.redd.it', 'i.imgur.com', 'preview.redd.it'],
   },
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
