@@ -748,12 +748,14 @@
 
         try {
           // Detect mobile user agent with better mobile detection
-          const isMobile = /iPhone|iPad|iPod|Android|Mobile|Touch/i.test(navigator.userAgent);
+          // const isMobile = /iPhone|iPad|iPod|Android|Mobile|Touch/i.test(navigator.userAgent);
 
           // Use a more universal User-Agent that works across devices
-          const userAgent = isMobile
-            ? "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-            : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+          // const userAgent = isMobile
+          //   ? "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+          //   : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+          
+          const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
           if (window.__rgvDebug) {
             console.log("[API FETCH]", { url, isMobile, userAgent });
