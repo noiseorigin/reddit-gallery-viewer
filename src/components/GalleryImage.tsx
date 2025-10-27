@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getPostImageSources, RedditPost } from '@/lib/reddit';
+import { getPostImageSources, RedditPost, getProxyImageUrl } from '@/lib/reddit';
 
 interface GalleryImageProps {
   post: RedditPost;
@@ -22,6 +22,7 @@ export function GalleryImage({
 }: GalleryImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [fallbackAttempted, setFallbackAttempted] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -71,6 +72,31 @@ export function GalleryImage({
   };
 
   const handleError = () => {
+    const img = imgRef.current;
+    if (!img) return;
+
+    // If we haven't attempted fallback and current src contains /api/proxy-image
+    if (!fallbackAttempted && img.src.includes('/api/proxy-image')) {
+      console.warn('[IMAGE] Proxy failed, attempting direct fallback for index:', index);
+      setFallbackAttempted(true);
+
+      // Try to extract the original URL from the proxy URL
+      const urlParam = new URLSearchParams(img.src.split('?')[1]);
+      const originalUrl = urlParam.get('url');
+
+      if (originalUrl) {
+        try {
+          const decodedUrl = decodeURIComponent(originalUrl);
+          console.warn('[IMAGE] Switching to direct URL:', decodedUrl);
+          img.src = decodedUrl;
+          return;
+        } catch (e) {
+          console.error('[IMAGE] Failed to decode URL for fallback:', e);
+        }
+      }
+    }
+
+    // If fallback also fails or wasn't available
     setHasError(true);
     onImageError(index);
   };

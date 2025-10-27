@@ -100,11 +100,17 @@ export function sanitizeRedditImageUrl(url: string): string {
   return decoded;
 }
 
-export function getProxyImageUrl(imageUrl: string): string {
+export function getProxyImageUrl(imageUrl: string, useFallback: boolean = false): string {
   if (!imageUrl) return "";
 
   try {
     const encodedUrl = encodeURIComponent(imageUrl);
+
+    // If useFallback is true, try proxy but have fallback
+    if (useFallback) {
+      return `/api/proxy-image?url=${encodedUrl}&fallback=true`;
+    }
+
     return `/api/proxy-image?url=${encodedUrl}`;
   } catch (error) {
     console.error("[PROXY URL ERROR]:", error);
