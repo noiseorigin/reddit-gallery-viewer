@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getPostImageSources, RedditPost, sanitizeRedditImageUrl } from '@/lib/reddit';
+import { getPostImageSources, RedditPost } from '@/lib/reddit';
 
 interface GalleryImageProps {
   post: RedditPost;

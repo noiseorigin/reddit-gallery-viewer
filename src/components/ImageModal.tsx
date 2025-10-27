@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RedditPost, sanitizeRedditImageUrl } from '@/lib/reddit';
+import { RedditPost, getProxyImageUrl } from '@/lib/reddit';
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -79,7 +79,7 @@ export function ImageModal({
             <div className="flex justify-center bg-gray-100 rounded flex-1">
               <img
                 key={imageKey}
-                src={sanitizeRedditImageUrl(currentPost.url)}
+                src={getProxyImageUrl(currentPost.url)}
                 alt={currentPost.title}
                 className="max-h-[70vh] w-auto mx-auto rounded"
               />

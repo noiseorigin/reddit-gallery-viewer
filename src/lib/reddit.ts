@@ -100,6 +100,18 @@ export function sanitizeRedditImageUrl(url: string): string {
   return decoded;
 }
 
+export function getProxyImageUrl(imageUrl: string): string {
+  if (!imageUrl) return "";
+
+  try {
+    const encodedUrl = encodeURIComponent(imageUrl);
+    return `/api/proxy-image?url=${encodedUrl}`;
+  } catch (error) {
+    console.error("[PROXY URL ERROR]:", error);
+    return imageUrl;
+  }
+}
+
 export function getPostImageSources(postData: RedditPost): {
   placeholder: string;
   full: string;
@@ -108,7 +120,10 @@ export function getPostImageSources(postData: RedditPost): {
   const previewImage = postData.preview?.images?.[0];
 
   if (!previewImage) {
-    return { placeholder: fallback, full: fallback };
+    return {
+      placeholder: getProxyImageUrl(fallback),
+      full: getProxyImageUrl(fallback)
+    };
   }
 
   const resolutions = previewImage.resolutions || [];
@@ -128,8 +143,8 @@ export function getPostImageSources(postData: RedditPost): {
   const full = sanitizeRedditImageUrl(previewImage.source?.url || fallback);
 
   return {
-    placeholder: placeholder || full || fallback,
-    full: full || fallback,
+    placeholder: getProxyImageUrl(placeholder || full || fallback),
+    full: getProxyImageUrl(full || fallback),
   };
 }
 
