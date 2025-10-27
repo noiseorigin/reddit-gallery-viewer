@@ -20,8 +20,17 @@ export interface RedditResponse {
   };
 }
 
+// Detect if running on mobile device
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+const MOBILE_USER_AGENT =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1";
 
 export async function fetchRedditAPI(url: string): Promise<any> {
   const cached = apiCache.get(url);
@@ -30,14 +39,19 @@ export async function fetchRedditAPI(url: string): Promise<any> {
   }
 
   try {
+    // Use appropriate User-Agent based on device
+    const userAgent = isMobileDevice() ? MOBILE_USER_AGENT : USER_AGENT;
+
     const response = await fetch(url, {
       headers: {
-        "User-Agent": USER_AGENT,
+        "User-Agent": userAgent,
         Accept: "application/json",
         "Accept-Language": "en-US,en;q=0.9",
       },
       mode: "cors",
       credentials: "omit",
+      // Add timeout signal
+      signal: AbortSignal.timeout(15000), // 15 second timeout for mobile
     });
 
     if (!response.ok) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getPostImageSources, RedditPost, getProxyImageUrl } from '@/lib/reddit';
+import { getOptimalPreloadCount } from '@/lib/mobile';
 
 interface GalleryImageProps {
   post: RedditPost;
@@ -11,7 +12,7 @@ interface GalleryImageProps {
   onClick: () => void;
 }
 
-const EAGER_IMAGE_COUNT = 6;
+const EAGER_IMAGE_COUNT = typeof window !== 'undefined' ? getOptimalPreloadCount() : 6;
 
 export function GalleryImage({
   post,

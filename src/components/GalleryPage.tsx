@@ -32,6 +32,7 @@ import { GridSizeButtons, GridSize, GRID_SIZES } from "./GridSizeButtons";
 import { DropdownMenu } from "./DropdownMenu";
 import { ImageModal } from "./ImageModal";
 import { FAQSection } from "./FAQSection";
+import { getMobileOptimizations, logMobileOptimizations } from "@/lib/mobile";
 
 const DEFAULT_SUBREDDITS = [
   { name: "photography", displayName: "📸 Photography" },
@@ -71,6 +72,13 @@ export function GalleryPage() {
 
   // Load popular subreddits on mount
   useEffect(() => {
+    // Log mobile optimizations on first load
+    if (typeof window !== 'undefined') {
+      logMobileOptimizations();
+      const optimizations = getMobileOptimizations();
+      console.log(`[APP] Running on ${optimizations.isMobileDevice ? 'mobile' : 'desktop'} device`);
+    }
+
     const loadPopular = async () => {
       const cached = readCachedPopularSubreddits();
       if (cached) {
