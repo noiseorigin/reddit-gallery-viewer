@@ -1,200 +1,125 @@
-# Reddit Gallery Viewer - Next.js Refactor
+# Reddit Gallery Viewer - Next.js
 
-A complete refactoring of Reddit Gallery Viewer from a single HTML file to a modern Next.js application with React components, TypeScript, and Tailwind CSS.
+A beautiful, modern web application to browse any Reddit subreddit as an image gallery. Built with Next.js, React, TypeScript, and Tailwind CSS.
+
+**Live**: https://reddit-gallery-viewer.vercel.app
 
 ## 🚀 Features
 
-- Browse any Reddit subreddit as a beautiful image gallery
-- Responsive grid layout (1-4 columns based on screen size)
-- Dynamic color theming
-- Image lazy loading with progressive enhancement
-- Search history with local storage persistence
-- Modal image viewer with keyboard navigation
-- SEO optimized with structured data
-- Mobile-friendly design
-- Zero dependencies beyond React/Next.js ecosystem
+- **Browse any subreddit** - Enter any subreddit name to view its images
+- **Responsive grid layout** - 1-4 columns based on screen size (mobile optimized)
+- **Dynamic color theming** - Colors adapt to subreddit aesthetic
+- **Image lazy loading** - Fast initial load with progressive enhancement
+- **Search history** - Recently viewed subreddits saved locally
+- **Modal viewer** - Full-screen image viewer with keyboard navigation (←/→ arrows, ESC to close)
+- **Time filtering** - Browse posts from Today, This Week, or This Month
+- **Sort options** - Switch between Hot, Top, New, Rising, Controversial posts
+- **SEO optimized** - Proper meta tags, structured data, Open Graph support
+- **Mobile friendly** - Works great on iOS, Android, and desktop
+
+## 📱 How to Use
+
+1. Visit the website
+2. Browse default subreddits or search for any subreddit
+3. Click images to view full size in modal
+4. Use keyboard arrows to navigate, ESC to close
+5. Your recent searches are saved automatically
+
+## 🔧 Quick Start (Development)
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Type checking
+npm run type-check
+```
+
+Visit `http://localhost:3000` in your browser.
 
 ## 📁 Project Structure
 
 ```
 src/
-├── app/
-│   ├── layout.tsx          # Root layout with metadata and SEO
-│   ├── page.tsx            # Home page with client-side gallery
-│   └── globals.css         # Global styles
-├── components/
-│   ├── FAQSection.tsx      # FAQ component
-│   ├── GalleryGrid.tsx     # Main gallery grid
-│   ├── GalleryImage.tsx    # Individual image card
-│   ├── GalleryPage.tsx     # Main page logic
-│   ├── ImageModal.tsx      # Image preview modal
-│   ├── SubredditButtons.tsx   # Subreddit selector
-│   └── TimeFilterButtons.tsx  # Time period filter
-└── lib/
-    ├── cache.ts            # API caching
-    ├── colors.ts           # Color utilities
-    ├── reddit.ts           # Reddit API functions
-    └── storage.ts          # Local storage utilities
+├── app/                    # Next.js App Router
+│   ├── layout.tsx         # Root layout with SEO metadata
+│   ├── page.tsx           # Home page
+│   ├── globals.css        # Global styles
+│   └── api/proxy-image/   # Image proxy (CORS fix)
+├── components/            # React components
+│   ├── GalleryPage.tsx    # Main container & logic
+│   ├── GalleryGrid.tsx    # Image grid layout
+│   ├── GalleryImage.tsx   # Individual image card
+│   ├── ImageModal.tsx     # Full-screen image viewer
+│   ├── SubredditButtons.tsx
+│   ├── TimeFilterButtons.tsx
+│   ├── SortFilterButtons.tsx
+│   ├── GridSizeButtons.tsx
+│   ├── DropdownMenu.tsx
+│   └── FAQSection.tsx
+└── lib/                   # Utility functions
+    ├── reddit.ts          # Reddit API & image handling
+    ├── cache.ts           # API response caching
+    ├── colors.ts          # Color manipulation utilities
+    └── storage.ts         # LocalStorage helpers
 ```
 
-## 🔧 Setup & Development
+## 🔄 Key Technologies
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
+- **Next.js 15** - React framework with SSR & static optimization
+- **React 19** - UI library with hooks
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first styling
+- **Vercel** - Deployment platform
 
-### Installation
+## 🌐 API Integration
+
+Fetches data from public Reddit API endpoints:
+- `https://www.reddit.com/r/{subreddit}/.json` - Posts data
+- `https://www.reddit.com/subreddits/popular.json` - Popular subreddits
+
+**Note**: Image loading uses a server-side proxy (`/api/proxy-image`) to bypass CORS restrictions, ensuring compatibility across all devices including mobile.
+
+## 🐛 Known Limitations
+
+- Reddit API returns max 100 posts per request (no pagination)
+- Private subreddits are inaccessible
+- Some third-party hosted images may fail due to CORS
+- Videos and non-image posts are filtered out
+- No user authentication required (public subreddits only)
+
+## 🚀 Deployment
+
+Deployed on Vercel with automatic deployments from git:
 
 ```bash
-cd view-subreddit-as-gallery-nextjs
-npm install
+git push origin main  # Auto-deploys to Vercel
 ```
 
-### Development
+### Environment Variables
 
-```bash
-npm run dev
-```
+None required for basic functionality. Optional:
+- `NEXT_PUBLIC_GA_ID` - Override Google Analytics ID
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
-
-### Build for Production
-
-```bash
-npm run build
-npm start
-```
-
-### Type Checking
-
-```bash
-npm run type-check
-```
-
-## 🎨 Key Improvements Over Original
-
-### Architecture
-- **Component-based**: Modular React components instead of imperative JavaScript
-- **TypeScript**: Full type safety across codebase
-- **Server-side rendering**: Next.js provides SSR and static optimization
-- **Modern tooling**: Tailwind CSS, ESLint, TypeScript compiler
-
-### Performance
-- Lazy loading images with IntersectionObserver
-- API response caching (5-minute TTL)
-- Code splitting and optimization via Next.js
-- Progressive image loading (placeholder → full resolution)
-
-### Developer Experience
-- Hot module reloading during development
-- TypeScript for type safety
-- Component reusability and composition
-- Clear separation of concerns (UI, logic, utilities)
-
-### Maintainability
-- Easier to extend with new features
-- Components have single responsibility
-- Utilities are well-documented and testable
-- Cleaner API abstraction layer
-
-## 🔄 Migration Notes
-
-### From Original HTML to Next.js
-
-| Original | Next.js |
-|----------|---------|
-| Single 1190-line HTML file | Modular components across files |
-| Vanilla JS with manual DOM manipulation | React hooks (useState, useEffect, useCallback) |
-| Inline styles and CSS variables | Tailwind CSS + CSS modules |
-| Manual caching with Map | Dedicated `cache.ts` utility |
-| localStorage access scattered | Centralized `storage.ts` |
-| Event listeners | React event handlers |
-| URL management with history API | Next.js useRouter and useSearchParams |
-
-### Feature Parity
-
-✅ All original features preserved:
-- Image filtering and display
-- Subreddit search and history
-- Time period filtering
-- Modal image viewer
-- Keyboard navigation (Esc, Arrow keys)
-- Share functionality
-- SEO meta tags
-- Google Analytics
-- Responsive design
-
-## 📱 Browser Support
+## 📊 Browser Support
 
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
 - Mobile browsers (iOS Safari 14+, Chrome Android)
 
-## 🚀 Deployment
-
-### Deploy to Vercel
-
-```bash
-git push origin main
-```
-
-Vercel will automatically build and deploy.
-
-### Environment Variables
-
-No environment variables required for basic functionality. Optional for analytics:
-- `NEXT_PUBLIC_GA_ID` - Google Analytics measurement ID
-
-## 🔗 API Endpoints Used
-
-- `https://www.reddit.com/r/{subreddit}/top/.json` - Fetch posts
-- `https://www.reddit.com/subreddits/popular.json` - Fetch popular subreddits
-
-## 📊 Performance Metrics
-
-- **Time to Interactive**: ~2-3s (on 4G, cached API)
-- **Largest Contentful Paint**: ~3-4s
-- **First Contentful Paint**: ~1-2s
-- **Bundle Size**: ~50KB (gzipped)
-
-## 🐛 Known Limitations
-
-1. Reddit API returns max 100 posts per request (no pagination)
-2. Private subreddits cannot be accessed
-3. Some third-party hosted images may fail due to CORS
-4. Video posts are filtered out (image-only gallery)
-
-## 🔮 Future Enhancements
-
-- [ ] Dark mode toggle
-- [ ] Image filtering/search
-- [ ] Post metadata display (upvotes, comments)
-- [ ] Pagination support
-- [ ] Share individual images
-- [ ] Download images
-- [ ] Social media integration
-- [ ] PWA support
-
 ## 📄 License
 
-Built as a free, open-source utility for browsing Reddit.
-
-## 🤝 Contributing
-
-Contributions welcome! Areas for improvement:
-- Enhanced error handling
-- Better mobile optimization
-- Additional theme options
-- Performance optimizations
-- Accessibility improvements
-
-## 📞 Support
-
-For issues or feature requests, create an issue or contact the maintainers.
+Free, open-source utility for browsing Reddit.
 
 ---
 
-**Version**: 2.0.0 (Next.js Refactor)
+**Version**: 2.0.0 (Next.js Edition)
 **Last Updated**: October 2024
-**Technology Stack**: Next.js 15, React 19, TypeScript, Tailwind CSS
+**Built with**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
