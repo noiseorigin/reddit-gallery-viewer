@@ -44,3 +44,7 @@ next-env.d.ts
 
 # documentation (local, not tracked)
 /docs
+
+
+AGENTS.md
+CLAUDE.md
