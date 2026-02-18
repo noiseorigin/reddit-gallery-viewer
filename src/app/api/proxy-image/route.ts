@@ -30,16 +30,13 @@ export async function GET(request: NextRequest) {
       'reddit.com',
     ];
 
-    let isAllowed = false;
-    for (const domain of allowedDomains) {
-      if (decodedUrl.includes(domain)) {
-        isAllowed = true;
-        break;
-      }
-    }
+    const parsedUrl = new URL(decodedUrl);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isAllowed = allowedDomains.some(
+      (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
 
     if (!isAllowed) {
-      // Return 400 to signal client to use direct URL
       return NextResponse.json(
         { error: 'URL domain not allowed' },
         { status: 400 }
@@ -71,11 +68,8 @@ export async function GET(request: NextRequest) {
 
       if (!response.ok) {
         console.warn(`[PROXY] Failed to fetch ${decodedUrl}: ${response.status}`);
-        // Return the direct URL for fallback
-        return NextResponse.json(
-          { url: decodedUrl },
-          { status: 200 }
-        );
+        // For <img src>, return redirect instead of JSON fallback.
+        return NextResponse.redirect(decodedUrl, { status: 307 });
       }
 
       // Get the content type
@@ -97,11 +91,8 @@ export async function GET(request: NextRequest) {
     } catch (fetchError) {
       clearTimeout(timeoutId);
       console.warn(`[PROXY] Fetch failed for ${decodedUrl}:`, fetchError);
-      // Return direct URL as fallback
-      return NextResponse.json(
-        { url: decodedUrl },
-        { status: 200 }
-      );
+      // For <img src>, return redirect instead of JSON fallback.
+      return NextResponse.redirect(decodedUrl, { status: 307 });
     }
   } catch (error) {
     console.error('[PROXY IMAGE ERROR]:', error);
