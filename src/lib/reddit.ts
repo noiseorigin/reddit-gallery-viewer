@@ -20,9 +20,6 @@ export interface RedditResponse {
   };
 }
 
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
 export async function fetchRedditAPI(url: string): Promise<any> {
   const cached = apiCache.get(url);
   if (cached) {
@@ -35,9 +32,14 @@ export async function fetchRedditAPI(url: string): Promise<any> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+    const requestUrl =
+      typeof window !== 'undefined' && url.includes('reddit.com')
+        ? `/api/reddit-json?url=${encodeURIComponent(url)}`
+        : url;
+
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await fetch(requestUrl, {
         headers: {
           Accept: "application/json",
         },
@@ -183,20 +185,9 @@ export async function loadPopularSubreddits(
   limit: number = 8
 ): Promise<Array<{ name: string; displayName: string }> | null> {
   try {
-    const response = await fetch(
-      `https://www.reddit.com/subreddits/popular.json?limit=${limit * 3}`,
-      {
-        headers: {
-          "User-Agent": USER_AGENT,
-        },
-      }
+    const json = await fetchRedditAPI(
+      `https://www.reddit.com/subreddits/popular.json?limit=${limit * 3}`
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const json = await response.json();
     const items =
       json?.data?.children
         ?.map((child: any) => child?.data)
