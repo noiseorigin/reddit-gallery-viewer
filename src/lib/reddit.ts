@@ -26,20 +26,11 @@ export async function fetchRedditAPI(url: string): Promise<any> {
     return cached;
   }
 
-  try {
-    // Safari (especially some iOS versions) may not support AbortSignal.timeout
-    // so we use a manual timeout controller for broader compatibility.
+  const fetchWithTimeout = async (targetUrl: string) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    const requestUrl =
-      typeof window !== 'undefined' && url.includes('reddit.com')
-        ? `/api/reddit-json?url=${encodeURIComponent(url)}`
-        : url;
-
-    let response: Response;
     try {
-      response = await fetch(requestUrl, {
+      return await fetch(targetUrl, {
         headers: {
           Accept: "application/json",
         },
@@ -49,6 +40,26 @@ export async function fetchRedditAPI(url: string): Promise<any> {
       });
     } finally {
       clearTimeout(timeoutId);
+    }
+  };
+
+  try {
+    const isBrowser = typeof window !== 'undefined';
+    const isReddit = url.includes('reddit.com');
+    const proxiedUrl = `/api/reddit-json?url=${encodeURIComponent(url)}`;
+
+    let response: Response;
+
+    // Prefer server proxy first (for compatibility), but if Vercel IP is blocked by Reddit,
+    // automatically fall back to direct browser request.
+    if (isBrowser && isReddit) {
+      response = await fetchWithTimeout(proxiedUrl);
+      if (!response.ok) {
+        console.warn(`[API] Proxy failed (${response.status}), fallback to direct Reddit request.`);
+        response = await fetchWithTimeout(url);
+      }
+    } else {
+      response = await fetchWithTimeout(url);
     }
 
     if (!response.ok) {
