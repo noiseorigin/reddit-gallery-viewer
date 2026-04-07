@@ -30,16 +30,13 @@ export async function GET(request: NextRequest) {
       'reddit.com',
     ];
 
-    let isAllowed = false;
-    for (const domain of allowedDomains) {
-      if (decodedUrl.includes(domain)) {
-        isAllowed = true;
-        break;
-      }
-    }
+    const parsedUrl = new URL(decodedUrl);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isAllowed = allowedDomains.some(
+      (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
 
     if (!isAllowed) {
-      // Return 400 to signal client to use direct URL
       return NextResponse.json(
         { error: 'URL domain not allowed' },
         { status: 400 }
