@@ -13,6 +13,24 @@ export interface MobileOptimizations {
   connectionType: '4g' | '3g' | '2g' | 'unknown';
 }
 
+interface ConnectionInfoLike {
+  effectiveType?: string;
+}
+
+interface NavigatorWithMobileHints extends Navigator {
+  connection?: ConnectionInfoLike;
+  mozConnection?: ConnectionInfoLike;
+  webkitConnection?: ConnectionInfoLike;
+  deviceMemory?: number;
+}
+
+type WindowWithIdleCallback = Window & {
+  requestIdleCallback?: (
+    callback: IdleRequestCallback,
+    options?: IdleRequestOptions
+  ) => number;
+};
+
 /**
  * Detect mobile device
  */
@@ -29,8 +47,11 @@ export function isMobile(): boolean {
 export function getNetworkType(): '4g' | '3g' | '2g' | 'unknown' {
   if (typeof window === 'undefined') return 'unknown';
 
-  // @ts-ignore - Network Information API is not fully typed
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const mobileNavigator = navigator as NavigatorWithMobileHints;
+  const connection =
+    mobileNavigator.connection ||
+    mobileNavigator.mozConnection ||
+    mobileNavigator.webkitConnection;
 
   if (!connection) return 'unknown';
 
@@ -48,14 +69,12 @@ export function getNetworkType(): '4g' | '3g' | '2g' | 'unknown' {
 export function isSlowDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
 
-  // Check for low-memory devices (Android)
-  // @ts-ignore
-  const deviceMemory = navigator.deviceMemory;
-  if (deviceMemory && deviceMemory < 4) return true;
+  const mobileNavigator = navigator as NavigatorWithMobileHints;
+  const deviceMemory = mobileNavigator.deviceMemory;
+  if (typeof deviceMemory === 'number' && deviceMemory < 4) return true;
 
-  // Check for low CPU cores
-  const cores = navigator.hardwareConcurrency || 1;
-  if (cores < 2) return true;
+  const cores = navigator.hardwareConcurrency;
+  if (typeof cores === 'number' && cores > 0 && cores < 2) return true;
 
   return false;
 }
@@ -177,11 +196,16 @@ export function getCacheDuration(): number {
  * Request idle callback polyfill
  */
 export function scheduleIdleTask(callback: () => void): void {
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    // @ts-ignore
-    requestIdleCallback(callback);
-  } else {
-    // Fallback: schedule after next paint
+  if (typeof window !== 'undefined') {
+    const idleWindow = window as WindowWithIdleCallback;
+
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      idleWindow.requestIdleCallback(callback);
+      return;
+    }
+  }
+
+  if (typeof window !== 'undefined') {
     if ('requestAnimationFrame' in window) {
       requestAnimationFrame(() => {
         setTimeout(callback, 0);
@@ -189,6 +213,8 @@ export function scheduleIdleTask(callback: () => void): void {
     } else {
       setTimeout(callback, 100);
     }
+  } else {
+    setTimeout(callback, 100);
   }
 }
 
@@ -207,6 +233,7 @@ export function logMobileOptimizations(): void {
   if (typeof window === 'undefined') return;
 
   const optimizations = getMobileOptimizations();
+  const mobileNavigator = navigator as NavigatorWithMobileHints;
   console.group('[MOBILE OPTIMIZATIONS]');
   console.log('Is Mobile Device:', optimizations.isMobileDevice);
   console.log('Network Type:', optimizations.connectionType);
@@ -214,7 +241,7 @@ export function logMobileOptimizations(): void {
   console.log('Is Low Bandwidth:', optimizations.isLowBandwidth);
   console.log('Image Load Priority:', optimizations.imageLoadPriority);
   console.log('Cache Aggressively:', optimizations.cacheAggressively);
-  console.log('Device Memory:', (navigator as any).deviceMemory, 'GB');
+  console.log('Device Memory:', mobileNavigator.deviceMemory, 'GB');
   console.log('CPU Cores:', navigator.hardwareConcurrency);
   console.groupEnd();
 }
