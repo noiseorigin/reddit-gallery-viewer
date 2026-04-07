@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { RedditPost, getProxyImageUrl } from '@/lib/reddit';
+import { useEffect, useMemo } from 'react';
+import { RedditPost } from '@/lib/reddit';
+import { buildStableImageSources } from '@/lib/image-sources';
+import { useStableImage } from '@/lib/use-stable-image';
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -22,11 +24,24 @@ export function ImageModal({
   onPrevious,
   primaryColor,
 }: ImageModalProps) {
-  const [imageKey, setImageKey] = useState(0);
-
   const currentPost = posts[currentIndex];
   const canPrevious = currentIndex > 0;
   const canNext = currentIndex < posts.length - 1;
+  const sources = useMemo(
+    () =>
+      currentPost
+        ? buildStableImageSources(currentPost)
+        : {
+            placeholderProxyUrl: '',
+            fullProxyUrl: '',
+            directFallbackUrl: '',
+          },
+    [currentPost]
+  );
+  const { src, hasError, isLoading, handleLoad, handleError } = useStableImage({
+    sources,
+    preferFull: true,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,10 +54,6 @@ export function ImageModal({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, canPrevious, canNext, onClose, onNext, onPrevious]);
-
-  useEffect(() => {
-    setImageKey((k) => k + 1);
-  }, [currentIndex]);
 
   if (!isOpen || !currentPost) return null;
 
@@ -77,12 +88,27 @@ export function ImageModal({
             </button>
 
             <div className="flex justify-center bg-gray-100 rounded flex-1">
-              <img
-                key={imageKey}
-                src={getProxyImageUrl(currentPost.url)}
-                alt={currentPost.title}
-                className="max-h-[70vh] w-auto mx-auto rounded"
-              />
+              <div className="relative flex min-h-[20rem] w-full items-center justify-center">
+                {isLoading && !hasError && (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                    Loading image...
+                  </div>
+                )}
+
+                {hasError ? (
+                  <div className="flex min-h-[20rem] items-center justify-center text-gray-600">
+                    Failed to load image.
+                  </div>
+                ) : (
+                  <img
+                    src={src}
+                    alt={currentPost.title}
+                    className="max-h-[70vh] w-auto mx-auto rounded"
+                    onLoad={handleLoad}
+                    onError={handleError}
+                  />
+                )}
+              </div>
             </div>
 
             <button
