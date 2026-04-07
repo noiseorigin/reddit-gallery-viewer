@@ -26,22 +26,70 @@ export async function fetchRedditAPI(url: string): Promise<any> {
     return cached;
   }
 
-  try {
-    const response = await fetch(url, {
+  const fetchJson = async (targetUrl: string, useBrowserHeaders: boolean = false) => {
+    const response = await fetch(targetUrl, {
+      headers: useBrowserHeaders
+        ? {
+            Accept: 'application/json',
+          }
+        : undefined,
+      mode: useBrowserHeaders ? 'cors' : undefined,
+      credentials: useBrowserHeaders ? 'omit' : undefined,
       signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      const error = new Error(`HTTP ${response.status}`) as Error & {
+        status?: number;
+        url?: string;
+      };
+      error.status = response.status;
+      error.url = targetUrl;
+      throw error;
     }
 
-    const data = await response.json();
+    return response.json();
+  };
+
+  try {
+    const data = await fetchJson(url, url.startsWith('https://www.reddit.com/'));
     apiCache.set(url, data);
     return data;
   } catch (error) {
+    const fallbackUrl = getDirectRedditFallbackUrl(url);
+
+    if (fallbackUrl && shouldRetryDirectly(error)) {
+      try {
+        const data = await fetchJson(fallbackUrl, true);
+        apiCache.set(url, data);
+        return data;
+      } catch (fallbackError) {
+        console.error('[API FETCH FALLBACK ERROR]:', fallbackError, {
+          url,
+          fallbackUrl,
+        });
+        throw fallbackError;
+      }
+    }
+
     console.error("[API FETCH ERROR]:", error, { url });
     throw error;
   }
+}
+
+export function buildDirectRedditFeedUrl(
+  subreddit: string,
+  time: string,
+  sort: string = 'top',
+  limit = 100
+): string {
+  const sortPath = sort === 'top' ? 'top' : sort;
+  const timeParam = ['top', 'controversial'].includes(sort) ? `&t=${time}` : '';
+  return `https://www.reddit.com/r/${subreddit}/${sortPath}/.json?${timeParam}&limit=${limit}`;
+}
+
+export function buildDirectPopularSubredditsUrl(limit: number = 8): string {
+  return `https://www.reddit.com/subreddits/popular.json?limit=${limit * 3}`;
 }
 
 export function buildApiUrl(
@@ -171,23 +219,86 @@ export async function loadPopularSubreddits(
   limit: number = 8
 ): Promise<Array<{ name: string; displayName: string }> | null> {
   try {
-    const response = await fetch(`/api/reddit-feed?kind=popular&limit=${limit}`, {
-      signal: AbortSignal.timeout(15000),
-    });
+    const localUrl = `/api/reddit-feed?kind=popular&limit=${limit}`;
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    try {
+      const response = await fetch(localUrl, {
+        signal: AbortSignal.timeout(15000),
+      });
+
+      if (!response.ok) {
+        const error = new Error(`HTTP ${response.status}`) as Error & { status?: number };
+        error.status = response.status;
+        throw error;
+      }
+
+      const json = (await response.json()) as {
+        items?: Array<{ name: string; displayName: string }>;
+      };
+
+      const items = json.items ?? [];
+      return items.length > 0 ? items : null;
+    } catch (error) {
+      if (!shouldRetryDirectly(error)) {
+        throw error;
+      }
+
+      const json = await fetchRedditAPI(buildDirectPopularSubredditsUrl(limit));
+      const items =
+        json?.data?.children
+          ?.map((child: any) => child?.data)
+          ?.filter(
+            (data: any) =>
+              data &&
+              !data.over18 &&
+              !data.quarantine &&
+              !data.hide_ads &&
+              !data.restrict_commenting
+          )
+          ?.slice(0, limit)
+          ?.map((data: any) => ({
+            name: data.display_name,
+            displayName: `🔥 ${data.display_name_prefixed}`,
+          })) || [];
+
+      return items.length > 0 ? items : null;
     }
-
-    const json = (await response.json()) as {
-      items?: Array<{ name: string; displayName: string }>;
-    };
-
-    const items = json.items ?? [];
-
-    return items.length > 0 ? items : null;
   } catch (error) {
     console.warn("Unable to fetch popular subreddits:", error);
     return null;
   }
+}
+
+function shouldRetryDirectly(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const status = (error as Error & { status?: number }).status;
+  return status === 403 || status === 429 || status === 500 || status === 502 || status === 504;
+}
+
+function getDirectRedditFallbackUrl(url: string): string | null {
+  if (!url.startsWith('/api/reddit-feed?')) {
+    return null;
+  }
+
+  const params = new URLSearchParams(url.split('?')[1] ?? '');
+  const kind = params.get('kind') ?? 'feed';
+
+  if (kind === 'popular') {
+    return buildDirectPopularSubredditsUrl(Number(params.get('limit') ?? '8'));
+  }
+
+  const subreddit = params.get('subreddit');
+  if (!subreddit) {
+    return null;
+  }
+
+  return buildDirectRedditFeedUrl(
+    subreddit,
+    params.get('time') ?? 'day',
+    params.get('sort') ?? 'top',
+    Number(params.get('limit') ?? '100')
+  );
 }
