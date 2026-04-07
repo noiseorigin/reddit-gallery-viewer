@@ -71,10 +71,9 @@ export async function GET(request: NextRequest) {
 
       if (!response.ok) {
         console.warn(`[PROXY] Failed to fetch ${decodedUrl}: ${response.status}`);
-        // Return the direct URL for fallback
         return NextResponse.json(
-          { url: decodedUrl },
-          { status: 200 }
+          { error: 'Failed to fetch upstream image' },
+          { status: 502 }
         );
       }
 
@@ -97,10 +96,13 @@ export async function GET(request: NextRequest) {
     } catch (fetchError) {
       clearTimeout(timeoutId);
       console.warn(`[PROXY] Fetch failed for ${decodedUrl}:`, fetchError);
-      // Return direct URL as fallback
+
+      const status =
+        fetchError instanceof Error && fetchError.name === 'AbortError' ? 504 : 502;
+
       return NextResponse.json(
-        { url: decodedUrl },
-        { status: 200 }
+        { error: 'Failed to fetch upstream image' },
+        { status }
       );
     }
   } catch (error) {
