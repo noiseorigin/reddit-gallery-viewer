@@ -123,7 +123,7 @@ export default function RootLayout({
                 '@type': 'SearchAction',
                 target: {
                   '@type': 'EntryPoint',
-                  urlTemplate: `${SITE_URL}/?sub={search_term_string}`,
+                  urlTemplate: `${SITE_URL}/r/{search_term_string}`,
                 },
                 'query-input': 'required name=search_term_string',
               },

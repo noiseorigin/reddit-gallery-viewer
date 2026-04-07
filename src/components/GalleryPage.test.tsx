@@ -230,6 +230,22 @@ describe('GalleryPage', () => {
     expect(screen.queryByText(/Failed to Load!/)).not.toBeInTheDocument();
   });
 
+  it('loads a server-provided subreddit route as the initial gallery state', async () => {
+    vi.mocked(fetchRedditAPI).mockResolvedValue({
+      data: {
+        children: [{ data: { id: '1', title: 'Route image' } }],
+      },
+    } as never);
+
+    render(<GalleryPage initialSubreddit="EarthPorn" />);
+
+    await waitFor(() => {
+      expect(fetchRedditAPI).toHaveBeenCalledWith(
+        buildApiUrl('EarthPorn', 'day', 'new')
+      );
+    });
+  });
+
   it('applies a quick view preset and refetches with its filters', async () => {
     vi.mocked(fetchRedditAPI).mockResolvedValue({
       data: {

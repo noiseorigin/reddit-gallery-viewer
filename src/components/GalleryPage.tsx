@@ -9,6 +9,11 @@ import { FAQSection } from './FAQSection';
 import { GalleryGrid } from './GalleryGrid';
 import { ImageModal } from './ImageModal';
 import { SubredditButtons } from './SubredditButtons';
+import {
+  buildGalleryHref,
+  DEFAULT_GALLERY_SORT,
+  DEFAULT_GALLERY_TIME,
+} from '@/lib/gallery-routes';
 import { FALLBACK_POPULAR_SUBREDDITS } from '@/lib/reddit-feed';
 import {
   buildApiUrl,
@@ -110,11 +115,21 @@ function QuickViewButton({ isActive, onClick, view }: QuickViewButtonProps) {
   );
 }
 
-export function GalleryPage() {
+interface GalleryPageProps {
+  initialSubreddit?: string | null;
+}
+
+export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
   const searchParams = useSearchParams();
+  const normalizedInitialSubreddit = parseSubredditName(initialSubreddit ?? '');
+  const querySubreddit = parseSubredditName(searchParams.get('sub') ?? '');
+  const explicitSubreddit = querySubreddit ?? normalizedInitialSubreddit;
+  const shouldPersistUrlRef = useRef(
+    Boolean(explicitSubreddit || searchParams.get('time') || searchParams.get('sort'))
+  );
 
   const [subreddits, setSubreddits] = useState(FALLBACK_POPULAR_SUBREDDITS);
-  const [currentSubreddit, setCurrentSubreddit] = useState('photography');
+  const [currentSubreddit, setCurrentSubreddit] = useState(explicitSubreddit ?? 'photography');
   const [currentTimeFilter, setCurrentTimeFilter] = useState(TIME_FILTERS[0]);
   const [currentSort, setCurrentSort] = useState(SORT_OPTIONS[2]);
   const [currentGridSize, setCurrentGridSize] = useState(GRID_SIZES[1]);
@@ -128,7 +143,7 @@ export function GalleryPage() {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    const requestedSubreddit = parseSubredditName(searchParams.get('sub') ?? '');
+    const requestedSubreddit = querySubreddit ?? normalizedInitialSubreddit;
 
     if (typeof window !== 'undefined') {
       logMobileOptimizations();
@@ -156,18 +171,15 @@ export function GalleryPage() {
     };
 
     loadPopular();
-  }, [searchParams]);
+  }, [normalizedInitialSubreddit, querySubreddit]);
 
   useEffect(() => {
-    const sub = searchParams.get('sub');
+    const sub = querySubreddit ?? normalizedInitialSubreddit;
     const time = searchParams.get('time');
     const sort = searchParams.get('sort');
 
     if (sub) {
-      const parsed = parseSubredditName(sub);
-      if (parsed) {
-        setCurrentSubreddit(parsed);
-      }
+      setCurrentSubreddit(sub);
     }
 
     if (time) {
@@ -183,7 +195,7 @@ export function GalleryPage() {
         setCurrentSort(nextSort);
       }
     }
-  }, [searchParams]);
+  }, [normalizedInitialSubreddit, querySubreddit, searchParams]);
 
   useEffect(() => {
     setSearchHistory(getSearchHistory());
@@ -236,11 +248,16 @@ export function GalleryPage() {
       addToSearchHistory({ name: currentSubreddit, displayName: displayLabel });
       setSearchHistory(getSearchHistory());
 
-      const nextUrl = new URL(window.location.href);
-      nextUrl.searchParams.set('sub', currentSubreddit);
-      nextUrl.searchParams.set('time', currentTimeFilter.name);
-      nextUrl.searchParams.set('sort', currentSort.name);
-      window.history.replaceState(null, '', nextUrl.toString());
+      if (shouldPersistUrlRef.current) {
+        window.history.replaceState(
+          null,
+          '',
+          buildGalleryHref(currentSubreddit, {
+            time: currentTimeFilter.name,
+            sort: currentSort.name,
+          })
+        );
+      }
     } catch {
       if (requestId !== requestIdRef.current) {
         return;
@@ -262,6 +279,7 @@ export function GalleryPage() {
   const handleCustomSubreddit = (input: string) => {
     const parsed = parseSubredditName(input);
     if (parsed) {
+      shouldPersistUrlRef.current = true;
       setCurrentSubreddit(parsed);
       return;
     }
@@ -293,7 +311,23 @@ export function GalleryPage() {
     });
   };
 
+  const handleSubredditSelect = (subreddit: string) => {
+    shouldPersistUrlRef.current = true;
+    setCurrentSubreddit(subreddit);
+  };
+
+  const handleTimeFilterSelect = (filter: TimeFilter) => {
+    shouldPersistUrlRef.current = true;
+    setCurrentTimeFilter(filter);
+  };
+
+  const handleSortSelect = (sort: SortOption) => {
+    shouldPersistUrlRef.current = true;
+    setCurrentSort(sort);
+  };
+
   const handleQuickView = (view: QuickView) => {
+    shouldPersistUrlRef.current = true;
     setCurrentSubreddit(view.subreddit);
 
     const nextTimeFilter = TIME_FILTERS.find((item) => item.name === view.time);
@@ -387,7 +421,7 @@ export function GalleryPage() {
                 label={`Time: ${currentTimeFilter.displayName}`}
                 items={TIME_FILTERS}
                 currentItem={currentTimeFilter}
-                onSelect={setCurrentTimeFilter}
+                onSelect={handleTimeFilterSelect}
                 primaryColor={PRIMARY_COLOR}
               />
               <DropdownMenu
@@ -395,7 +429,7 @@ export function GalleryPage() {
                 label={`Sort: ${currentSort.displayName}`}
                 items={SORT_OPTIONS}
                 currentItem={currentSort}
-                onSelect={setCurrentSort}
+                onSelect={handleSortSelect}
                 primaryColor={PRIMARY_COLOR}
               />
               <DropdownMenu
@@ -465,7 +499,7 @@ export function GalleryPage() {
                 <SubredditButtons
                   subreddits={subreddits}
                   currentSubreddit={currentSubreddit}
-                  onSelect={setCurrentSubreddit}
+                  onSelect={handleSubredditSelect}
                   primaryColor={PRIMARY_COLOR}
                 />
               </div>
@@ -502,7 +536,7 @@ export function GalleryPage() {
                 {searchHistory.map((item) => (
                   <button
                     key={item.name}
-                    onClick={() => setCurrentSubreddit(item.name)}
+                    onClick={() => handleSubredditSelect(item.name)}
                     className="rounded-full border border-gray-200 bg-[#f8f6f2] px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-200 hover:text-orange-700"
                   >
                     {item.displayName}
@@ -560,6 +594,15 @@ export function GalleryPage() {
                     {fallbackDescription}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                    <Link
+                      href={buildGalleryHref(currentSubreddit, {
+                        time: DEFAULT_GALLERY_TIME,
+                        sort: DEFAULT_GALLERY_SORT,
+                      })}
+                      className="font-medium text-orange-700 underline underline-offset-4"
+                    >
+                      Open default view
+                    </Link>
                     <Link
                       href="/about"
                       className="font-medium text-orange-700 underline underline-offset-4"

@@ -14,10 +14,14 @@ function LoadingFallback() {
   );
 }
 
-export function PageWrapper() {
+interface PageWrapperProps {
+  initialSubreddit?: string | null;
+}
+
+export function PageWrapper({ initialSubreddit }: PageWrapperProps) {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <GalleryPage />
+      <GalleryPage initialSubreddit={initialSubreddit} />
     </Suspense>
   );
 }

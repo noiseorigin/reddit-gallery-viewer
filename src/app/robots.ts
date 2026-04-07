@@ -7,17 +7,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
-        disallow: ['/api/', '/.next/', '/node_modules/'],
+        allow: ['/', '/api/proxy-image'],
+        disallow: ['/api/reddit-feed', '/api/reddit-json', '/.next/', '/node_modules/'],
       },
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        allow: ['/', '/api/proxy-image'],
         crawlDelay: 0,
       },
       {
         userAgent: 'Bingbot',
-        allow: '/',
+        allow: ['/', '/api/proxy-image'],
         crawlDelay: 1,
       },
     ],

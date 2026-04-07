@@ -1,5 +1,9 @@
 'use client';
 
+import Link from 'next/link';
+
+import { buildGalleryHref } from '@/lib/gallery-routes';
+
 interface SubredditButtonsProps {
   subreddits: Array<{ name: string; displayName: string }>;
   currentSubreddit: string;
@@ -16,8 +20,9 @@ export function SubredditButtons({
   return (
     <div className="flex flex-wrap gap-2">
       {subreddits.map((sub) => (
-        <button
+        <Link
           key={sub.name}
+          href={buildGalleryHref(sub.name)}
           onClick={() => onSelect(sub.name)}
           className={`px-3 py-1 text-sm rounded font-medium transition-colors duration-200 ${
             currentSubreddit === sub.name
@@ -32,7 +37,7 @@ export function SubredditButtons({
           }}
         >
           {sub.displayName}
-        </button>
+        </Link>
       ))}
     </div>
   );

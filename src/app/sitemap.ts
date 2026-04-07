@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 
+import { buildSubredditPath } from '@/lib/gallery-routes';
 import { SITE_URL } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -46,7 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const subredditPages: MetadataRoute.Sitemap = subreddits.map((subreddit) => ({
-    url: `${SITE_URL}/?sub=${subreddit.name}`,
+    url: `${SITE_URL}${buildSubredditPath(subreddit.name)}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
     priority: subreddit.priority,
