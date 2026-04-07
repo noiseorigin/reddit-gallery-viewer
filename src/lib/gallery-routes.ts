@@ -1,18 +1,21 @@
 export const DEFAULT_GALLERY_TIME = 'day';
 export const DEFAULT_GALLERY_SORT = 'new';
 
+export interface GalleryRouteOptions {
+  time?: string;
+  sort?: string;
+  includeDefaults?: boolean;
+}
+
 export function buildSubredditPath(subreddit: string): string {
   return `/r/${encodeURIComponent(subreddit)}`;
 }
 
-export function buildGalleryHref(
-  subreddit: string,
-  options: {
-    time?: string;
-    sort?: string;
-    includeDefaults?: boolean;
-  } = {}
-): string {
+export function buildGalleryLandingPath(slug: string): string {
+  return `/gallery/${encodeURIComponent(slug.toLowerCase())}`;
+}
+
+function buildGalleryQueryString(options: GalleryRouteOptions = {}): string {
   const { time, sort, includeDefaults = false } = options;
   const params = new URLSearchParams();
 
@@ -24,6 +27,21 @@ export function buildGalleryHref(
     params.set('sort', sort);
   }
 
-  const queryString = params.toString();
+  return params.toString();
+}
+
+export function buildGalleryHref(
+  subreddit: string,
+  options: GalleryRouteOptions = {}
+): string {
+  const queryString = buildGalleryQueryString(options);
   return queryString ? `${buildSubredditPath(subreddit)}?${queryString}` : buildSubredditPath(subreddit);
+}
+
+export function buildGalleryLandingHref(
+  slug: string,
+  options: GalleryRouteOptions = {}
+): string {
+  const queryString = buildGalleryQueryString(options);
+  return queryString ? `${buildGalleryLandingPath(slug)}?${queryString}` : buildGalleryLandingPath(slug);
 }

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { buildSubredditPath } from '@/lib/gallery-routes';
+import { buildGalleryLandingPath, buildSubredditPath } from '@/lib/gallery-routes';
 import { parseSubredditName } from '@/lib/reddit';
+import { getSubredditPageConfigBySubredditName } from '@/lib/subreddit-pages';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 
 import { PageWrapper } from '../../page-wrapper';
@@ -14,7 +15,10 @@ interface SubredditPageProps {
 }
 
 function getSubredditMetadata(subreddit: string): Metadata {
-  const canonicalPath = buildSubredditPath(subreddit);
+  const landingPage = getSubredditPageConfigBySubredditName(subreddit);
+  const canonicalPath = landingPage
+    ? buildGalleryLandingPath(landingPage.slug)
+    : buildSubredditPath(subreddit);
   const title = `r/${subreddit} Image Gallery | ${SITE_NAME}`;
   const description = `Browse public images from r/${subreddit} in a clean gallery with filters, quick presets, and mobile-friendly viewing.`;
 

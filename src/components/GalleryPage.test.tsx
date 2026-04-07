@@ -30,6 +30,18 @@ function deferred<T>() {
 
 const mockUseSearchParams = vi.fn();
 
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockUseSearchParams(),
 }));
@@ -281,6 +293,41 @@ describe('GalleryPage', () => {
 
     expect(screen.getByText(/Suggested presets/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Report a loading issue/i })).toBeInTheDocument();
+  });
+
+  it('renders direct entry links for the curated gallery landing pages', async () => {
+    vi.mocked(fetchRedditAPI).mockResolvedValue({
+      data: {
+        children: [{ data: { id: '1', title: 'Preset image' } }],
+      },
+    } as never);
+
+    render(<GalleryPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Featured galleries/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('link', { name: /r\/aww/i })).toHaveAttribute(
+      'href',
+      '/gallery/aww'
+    );
+    expect(screen.getByRole('link', { name: /r\/wallpapers/i })).toHaveAttribute(
+      'href',
+      '/gallery/wallpapers'
+    );
+    expect(screen.getByRole('link', { name: /r\/EarthPorn/i })).toHaveAttribute(
+      'href',
+      '/gallery/earthporn'
+    );
+    expect(screen.getByRole('link', { name: /r\/cats/i })).toHaveAttribute(
+      'href',
+      '/gallery/cats'
+    );
+    expect(screen.getByRole('link', { name: /r\/memes/i })).toHaveAttribute(
+      'href',
+      '/gallery/memes'
+    );
   });
 
   it('renders the value and content standards copy for the tool', async () => {

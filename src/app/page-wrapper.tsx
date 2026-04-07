@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { GalleryPage } from '@/components/GalleryPage';
+import type { SubredditPageConfig } from '@/lib/subreddit-pages';
 
 function LoadingFallback() {
   return (
@@ -16,12 +17,16 @@ function LoadingFallback() {
 
 interface PageWrapperProps {
   initialSubreddit?: string | null;
+  landingPage?: {
+    page: SubredditPageConfig;
+    relatedPages: SubredditPageConfig[];
+  };
 }
 
-export function PageWrapper({ initialSubreddit }: PageWrapperProps) {
+export function PageWrapper({ initialSubreddit, landingPage }: PageWrapperProps) {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <GalleryPage initialSubreddit={initialSubreddit} />
+      <GalleryPage initialSubreddit={initialSubreddit} landingPage={landingPage} />
     </Suspense>
   );
 }

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildGalleryHref,
+  buildGalleryLandingHref,
+  buildGalleryLandingPath,
   buildSubredditPath,
   DEFAULT_GALLERY_SORT,
   DEFAULT_GALLERY_TIME,
@@ -10,6 +12,10 @@ import {
 describe('gallery routes', () => {
   it('builds subreddit paths', () => {
     expect(buildSubredditPath('EarthPorn')).toBe('/r/EarthPorn');
+  });
+
+  it('builds landing-page paths', () => {
+    expect(buildGalleryLandingPath('EarthPorn')).toBe('/gallery/earthporn');
   });
 
   it('keeps default gallery URLs clean', () => {
@@ -38,5 +44,14 @@ describe('gallery routes', () => {
         includeDefaults: true,
       })
     ).toBe('/r/photography?time=day&sort=new');
+  });
+
+  it('builds landing-page URLs with filters', () => {
+    expect(
+      buildGalleryLandingHref('earthporn', {
+        time: 'month',
+        sort: 'top',
+      })
+    ).toBe('/gallery/earthporn?time=month&sort=top');
   });
 });

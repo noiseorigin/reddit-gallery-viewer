@@ -5,6 +5,7 @@ import { RedditPost } from '@/lib/reddit';
 import { buildStableImageSources } from '@/lib/image-sources';
 import { getOptimalPreloadCount } from '@/lib/mobile';
 import { useStableImage } from '@/lib/use-stable-image';
+import { DownloadButton } from './DownloadButton';
 
 interface GalleryImageProps {
   post: RedditPost;
@@ -33,7 +34,7 @@ export function GalleryImage({
 
   return (
     <div
-      className="relative bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 group cursor-pointer"
+      className="group overflow-hidden rounded-2xl bg-white shadow-md transition-transform duration-300 hover:scale-[1.01] cursor-pointer"
       onClick={onClick}
     >
       <div className="relative aspect-square bg-gray-100">
@@ -59,8 +60,13 @@ export function GalleryImage({
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-60 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2">
-        {post.title}
+      <div className="space-y-3 border-t border-orange-100 bg-white p-4">
+        <p className="line-clamp-2 text-sm font-medium leading-relaxed text-gray-800">{post.title}</p>
+        <DownloadButton
+          downloadUrl={sources.fullProxyUrl || src}
+          originalUrl={sources.directFallbackUrl || post.url}
+          title={post.title}
+        />
       </div>
     </div>
   );

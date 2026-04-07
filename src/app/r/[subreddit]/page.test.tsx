@@ -9,7 +9,7 @@ describe('SubredditPage metadata', () => {
     });
 
     expect(metadata.title).toBe('r/EarthPorn Image Gallery | Reddit Gallery Viewer');
-    expect(metadata.alternates?.canonical).toBe('/r/EarthPorn');
+    expect(metadata.alternates?.canonical).toBe('/gallery/earthporn');
     expect(metadata.description).toContain('r/EarthPorn');
   });
 

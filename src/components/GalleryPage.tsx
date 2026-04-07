@@ -10,7 +10,6 @@ import { GalleryGrid } from './GalleryGrid';
 import { ImageModal } from './ImageModal';
 import { SubredditButtons } from './SubredditButtons';
 import {
-  buildGalleryHref,
   DEFAULT_GALLERY_SORT,
   DEFAULT_GALLERY_TIME,
 } from '@/lib/gallery-routes';
@@ -24,6 +23,13 @@ import {
   type RedditPost,
   type RedditResponse,
 } from '@/lib/reddit';
+import {
+  getAllSubredditPageConfigs,
+  buildPreferredGalleryHref,
+  getRelatedSubredditPageConfigs,
+  getSubredditPageConfigBySubredditName,
+  type SubredditPageConfig,
+} from '@/lib/subreddit-pages';
 import { getMobileOptimizations, logMobileOptimizations } from '@/lib/mobile';
 import {
   addToSearchHistory,
@@ -60,6 +66,7 @@ interface QuickViewButtonProps {
   isActive: boolean;
   onClick: () => void;
   view: QuickView;
+  compact?: boolean;
 }
 
 const QUICK_VIEWS: QuickView[] = [
@@ -93,11 +100,13 @@ const QUICK_VIEWS: QuickView[] = [
   },
 ];
 
-function QuickViewButton({ isActive, onClick, view }: QuickViewButtonProps) {
+function QuickViewButton({ isActive, onClick, view, compact = false }: QuickViewButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="rounded-2xl border px-4 py-3 text-left transition-all hover:-translate-y-0.5"
+      className={`rounded-2xl border text-left transition-all hover:-translate-y-0.5 ${
+        compact ? 'px-3 py-2' : 'px-4 py-3'
+      }`}
       style={{
         backgroundColor: isActive ? PRIMARY_COLOR : '#fffaf5',
         borderColor: isActive ? PRIMARY_COLOR : '#fed7aa',
@@ -105,21 +114,27 @@ function QuickViewButton({ isActive, onClick, view }: QuickViewButtonProps) {
       }}
     >
       <span className="block text-sm font-semibold">{view.title}</span>
-      <span
-        className="mt-1 block text-xs"
-        style={{ color: isActive ? 'rgba(255,255,255,0.82)' : '#7c2d12' }}
-      >
-        {view.subtitle}
-      </span>
+      {!compact ? (
+        <span
+          className="mt-1 block text-xs"
+          style={{ color: isActive ? 'rgba(255,255,255,0.82)' : '#7c2d12' }}
+        >
+          {view.subtitle}
+        </span>
+      ) : null}
     </button>
   );
 }
 
 interface GalleryPageProps {
   initialSubreddit?: string | null;
+  landingPage?: {
+    page: SubredditPageConfig;
+    relatedPages: SubredditPageConfig[];
+  };
 }
 
-export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
+export function GalleryPage({ initialSubreddit, landingPage }: GalleryPageProps) {
   const searchParams = useSearchParams();
   const normalizedInitialSubreddit = parseSubredditName(initialSubreddit ?? '');
   const querySubreddit = parseSubredditName(searchParams.get('sub') ?? '');
@@ -141,6 +156,9 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [shareMessage, setShareMessage] = useState('');
   const requestIdRef = useRef(0);
+  const isLandingPage =
+    Boolean(landingPage) &&
+    currentSubreddit.toLowerCase() === landingPage?.page.subredditName.toLowerCase();
 
   useEffect(() => {
     const requestedSubreddit = querySubreddit ?? normalizedInitialSubreddit;
@@ -204,8 +222,17 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
   useEffect(() => {
     const matched = subreddits.find((item) => item.name === currentSubreddit);
     const displayLabel = matched?.displayName || `/r/${currentSubreddit}`;
-    const title = `r/${currentSubreddit} Gallery - ${currentSort.displayName} Images | Reddit Gallery Viewer`;
-    const description = `Browse ${displayLabel} as a clean gallery. View ${currentSort.displayName.toLowerCase()} images from ${currentTimeFilter.displayName.toLowerCase()} without the clutter of a standard Reddit feed.`;
+    const curatedConfig = getSubredditPageConfigBySubredditName(currentSubreddit);
+    const isDefaultView =
+      currentTimeFilter.name === DEFAULT_GALLERY_TIME && currentSort.name === DEFAULT_GALLERY_SORT;
+    const title =
+      curatedConfig && isDefaultView
+        ? `${curatedConfig.seoTitle} | Reddit Gallery Viewer`
+        : `r/${currentSubreddit} Gallery - ${currentSort.displayName} Images | Reddit Gallery Viewer`;
+    const description =
+      curatedConfig && isDefaultView
+        ? curatedConfig.metaDescription
+        : `Browse ${displayLabel} as a clean gallery. View ${currentSort.displayName.toLowerCase()} images from ${currentTimeFilter.displayName.toLowerCase()} without the clutter of a standard Reddit feed.`;
 
     document.title = title;
 
@@ -252,7 +279,7 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
         window.history.replaceState(
           null,
           '',
-          buildGalleryHref(currentSubreddit, {
+          buildPreferredGalleryHref(currentSubreddit, {
             time: currentTimeFilter.name,
             sort: currentSort.name,
           })
@@ -344,6 +371,20 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
   const matchedSubreddit = subreddits.find((item) => item.name === currentSubreddit);
   const displayLabel = matchedSubreddit?.displayName || `/r/${currentSubreddit}`;
   const showFallbackPanel = Boolean(error) || (!isLoading && posts.length === 0);
+  const activePageConfig =
+    isLandingPage && landingPage
+      ? landingPage.page
+      : getSubredditPageConfigBySubredditName(currentSubreddit);
+  const relatedLandingPages = activePageConfig
+    ? isLandingPage && landingPage?.page.slug === activePageConfig.slug
+      ? landingPage.relatedPages
+      : getRelatedSubredditPageConfigs(activePageConfig)
+    : [];
+  const featuredLandingPages = !isLandingPage ? getAllSubredditPageConfigs() : [];
+  const pageHeading = activePageConfig?.h1 ?? 'Browse a subreddit as a clean image gallery.';
+  const pageIntro =
+    activePageConfig?.intro ??
+    'Search any public subreddit, switch filters, and open the original post only when you need more context.';
   const fallbackTitle = error ? 'Reddit is slow right now' : 'No safe image posts found yet';
   const fallbackDescription = error
     ? 'The gallery can temporarily hit Reddit rate limits. Try a preset below or switch to a broader time range.'
@@ -360,7 +401,7 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
       }}
     >
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-10 lg:px-8">
-        <header className="space-y-6">
+        <header className="space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-4">
               <div className="h-14 w-14 shrink-0 rounded-2xl border border-orange-200 bg-white p-2 shadow-sm">
@@ -371,21 +412,26 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
                 />
               </div>
               <div className="space-y-2">
-                <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
-                  Search a subreddit and view it as a gallery.
+                {activePageConfig ? (
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
+                    {activePageConfig.category}
+                  </p>
+                ) : null}
+                <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">
+                  {pageHeading}
                 </h1>
-                <p className="max-w-3xl text-base leading-relaxed text-gray-700">
-                  Browse public image posts in a cleaner layout and open Reddit only when you want the full thread.
+                <p className="max-w-2xl text-sm leading-relaxed text-gray-700 sm:text-base">
+                  {pageIntro}
                 </p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-orange-100 bg-white/90 px-4 py-3 text-sm leading-relaxed text-gray-700">
-              No login required. Public communities only.
+            <div className="rounded-full border border-orange-100 bg-white/90 px-3 py-2 text-xs font-medium text-gray-700 sm:text-sm">
+              Public communities. No login required.
             </div>
           </div>
 
-          <div className="grid gap-4 rounded-[28px] border border-orange-100 bg-white/92 p-4 shadow-[0_12px_40px_rgba(163,73,20,0.08)] lg:grid-cols-[minmax(0,1.3fr)_auto] lg:items-end md:p-6">
+          <div className="grid gap-4 rounded-[28px] border border-orange-100 bg-white/92 p-4 shadow-[0_12px_40px_rgba(163,73,20,0.08)] lg:grid-cols-[minmax(0,1.3fr)_auto] lg:items-end md:p-5">
             <div className="space-y-3">
               <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 Search
@@ -442,112 +488,100 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
               />
             </div>
 
-            <div className="border-t border-orange-100 pt-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                  Quick views
-                </p>
-                <p className="text-sm text-gray-600">
-                  Useful starting points for inspiration browsing.
-                </p>
-              </div>
+            {!activePageConfig ? (
+              <div className="space-y-4 border-t border-orange-100 pt-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
+                    Featured galleries
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {featuredLandingPages.map((page) => (
+                      <Link
+                        key={page.slug}
+                        href={buildPreferredGalleryHref(page.subredditName)}
+                        className="rounded-full border border-orange-100 bg-[#fffaf5] px-3 py-2 text-sm font-medium text-orange-800 transition-colors hover:border-orange-200 hover:bg-white"
+                      >
+                        r/{page.subredditName}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                {QUICK_VIEWS.map((view) => {
-                  const isActive =
-                    currentSubreddit === view.subreddit &&
-                    currentTimeFilter.name === view.time &&
-                    currentSort.name === view.sort;
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    Quick views
+                  </p>
+                  <p className="text-sm text-gray-600">Fast filter presets.</p>
+                </div>
 
-                  return (
-                    <QuickViewButton
-                      key={`${view.subreddit}-${view.time}-${view.sort}`}
-                      isActive={isActive}
-                      onClick={() => handleQuickView(view)}
-                      view={view}
-                    />
-                  );
-                })}
-              </div>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_VIEWS.map((view) => {
+                    const isActive =
+                      currentSubreddit === view.subreddit &&
+                      currentTimeFilter.name === view.time &&
+                      currentSort.name === view.sort;
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {[
-                  'Design inspiration',
-                  'Photography references',
-                  'Moodboard browsing',
-                  'Shareable filtered URLs',
-                ].map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-orange-100 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
-                  >
-                    {item}
-                  </span>
-                ))}
+                    return (
+                      <QuickViewButton
+                        key={`${view.subreddit}-${view.time}-${view.sort}`}
+                        isActive={isActive}
+                        onClick={() => handleQuickView(view)}
+                        view={view}
+                        compact
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3 border-t border-orange-100 pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    Popular communities
+                  </p>
+                  <SubredditButtons
+                    subreddits={subreddits}
+                    currentSubreddit={currentSubreddit}
+                    onSelect={handleSubredditSelect}
+                    primaryColor={PRIMARY_COLOR}
+                  />
+                </div>
+
+                {searchHistory.length > 0 ? (
+                  <div className="space-y-3 border-t border-orange-100 pt-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                        Recent searches
+                      </p>
+                      <button
+                        onClick={handleClearHistory}
+                        className="text-sm font-medium text-gray-500 underline underline-offset-4 hover:text-red-600"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {searchHistory.map((item) => (
+                        <button
+                          key={item.name}
+                          onClick={() => handleSubredditSelect(item.name)}
+                          className="rounded-full border border-gray-200 bg-[#f8f6f2] px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-200 hover:text-orange-700"
+                        >
+                          {item.displayName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl border border-orange-100 bg-[#fff8f1] p-4 text-sm leading-relaxed text-gray-700">
+                Browse the live gallery below, switch time or sort filters when needed, and use
+                the per-image actions to open the original post or download a single image.
+              </div>
+            )}
           </div>
         </header>
 
-        <section className="mt-8 rounded-[28px] border border-orange-100 bg-white/90 p-4 shadow-[0_12px_40px_rgba(163,73,20,0.08)] md:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                Popular communities
-              </p>
-              <div className="mt-3">
-                <SubredditButtons
-                  subreddits={subreddits}
-                  currentSubreddit={currentSubreddit}
-                  onSelect={handleSubredditSelect}
-                  primaryColor={PRIMARY_COLOR}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleShare}
-                className="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
-                style={{ backgroundColor: PRIMARY_COLOR }}
-              >
-                Share view
-              </button>
-              {shareMessage ? (
-                <p className="text-sm font-medium text-green-700">{shareMessage}</p>
-              ) : null}
-            </div>
-          </div>
-
-          {searchHistory.length > 0 ? (
-            <div className="mt-6">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                  Recent searches
-                </p>
-                <button
-                  onClick={handleClearHistory}
-                  className="text-sm font-medium text-gray-500 underline underline-offset-4 hover:text-red-600"
-                >
-                  Clear history
-                </button>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {searchHistory.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => handleSubredditSelect(item.name)}
-                    className="rounded-full border border-gray-200 bg-[#f8f6f2] px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-200 hover:text-orange-700"
-                  >
-                    {item.displayName}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </section>
-
-        <section className="mt-8 space-y-4">
+        <section className="mt-6 space-y-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
@@ -560,10 +594,22 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
                 {currentSort.displayName} posts from {currentTimeFilter.displayName}.
               </p>
             </div>
-            <div className="max-w-md rounded-2xl border border-orange-100 bg-white/80 px-4 py-3 text-sm leading-relaxed text-gray-700">
-              {error
-                ? 'Reddit may be rate-limiting requests right now. Try again shortly.'
-                : 'Click an image to open it in the full viewer.'}
+            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+              <button
+                onClick={handleShare}
+                className="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
+                style={{ backgroundColor: PRIMARY_COLOR }}
+              >
+                Share view
+              </button>
+              {shareMessage ? (
+                <p className="text-sm font-medium text-green-700">{shareMessage}</p>
+              ) : null}
+              <div className="max-w-md rounded-2xl border border-orange-100 bg-white/80 px-4 py-3 text-sm leading-relaxed text-gray-700">
+                {error
+                  ? 'Reddit may be rate-limiting requests right now. Try again shortly.'
+                  : 'Click an image to open it in the full viewer.'}
+              </div>
             </div>
           </div>
 
@@ -595,7 +641,7 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
                   </p>
                   <div className="mt-4 flex flex-wrap gap-4 text-sm">
                     <Link
-                      href={buildGalleryHref(currentSubreddit, {
+                      href={buildPreferredGalleryHref(currentSubreddit, {
                         time: DEFAULT_GALLERY_TIME,
                         sort: DEFAULT_GALLERY_SORT,
                       })}
@@ -640,6 +686,41 @@ export function GalleryPage({ initialSubreddit }: GalleryPageProps) {
                     })}
                   </div>
                 </div>
+              </div>
+            </div>
+          ) : null}
+
+          {relatedLandingPages.length > 0 ? (
+            <div className="rounded-[24px] border border-orange-100 bg-white/92 p-5 shadow-[0_12px_32px_rgba(163,73,20,0.06)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
+                    Related subreddits
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold text-gray-900">
+                    Explore similar image-first communities
+                  </h3>
+                </div>
+                <p className="max-w-xl text-sm leading-relaxed text-gray-700">
+                  These related galleries use the same lightweight layout, so it is easy to keep
+                  browsing without starting a new search.
+                </p>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {relatedLandingPages.map((page) => (
+                  <Link
+                    key={page.slug}
+                    href={buildPreferredGalleryHref(page.subredditName)}
+                    className="rounded-2xl border border-orange-100 bg-[#fffaf5] p-4 transition-transform hover:-translate-y-0.5"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-600">
+                      {page.category}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold text-gray-900">{page.h1}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-gray-700">{page.intro}</p>
+                  </Link>
+                ))}
               </div>
             </div>
           ) : null}

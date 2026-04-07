@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 
-import { buildSubredditPath } from '@/lib/gallery-routes';
+import { buildGalleryLandingPath } from '@/lib/gallery-routes';
+import { getAllSubredditPageConfigs } from '@/lib/subreddit-pages';
 import { SITE_URL } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -31,26 +32,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const subreddits = [
-    { name: 'photography', priority: 0.9 },
-    { name: 'EarthPorn', priority: 0.9 },
-    { name: 'CatsStandingUp', priority: 0.8 },
-    { name: 'InteriorDesign', priority: 0.8 },
-    { name: 'Art', priority: 0.9 },
-    { name: 'FoodPorn', priority: 0.8 },
-    { name: 'houseplants', priority: 0.8 },
-    { name: 'MostBeautiful', priority: 0.8 },
-    { name: 'GetMotivated', priority: 0.7 },
-    { name: 'Cyberpunk', priority: 0.7 },
-    { name: 'VaporwaveAesthetics', priority: 0.7 },
-    { name: 'amoledbackgrounds', priority: 0.7 },
-  ];
-
-  const subredditPages: MetadataRoute.Sitemap = subreddits.map((subreddit) => ({
-    url: `${SITE_URL}${buildSubredditPath(subreddit.name)}`,
+  const subredditPages: MetadataRoute.Sitemap = getAllSubredditPageConfigs().map((page) => ({
+    url: `${SITE_URL}${buildGalleryLandingPath(page.slug)}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: subreddit.priority,
+    priority: page.adsenseRisk === 'review' ? 0.7 : 0.8,
   }));
 
   return [...mainPages, ...subredditPages];

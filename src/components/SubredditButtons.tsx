@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { buildGalleryHref } from '@/lib/gallery-routes';
+import { buildPreferredGalleryHref } from '@/lib/subreddit-pages';
 
 interface SubredditButtonsProps {
   subreddits: Array<{ name: string; displayName: string }>;
@@ -22,7 +22,7 @@ export function SubredditButtons({
       {subreddits.map((sub) => (
         <Link
           key={sub.name}
-          href={buildGalleryHref(sub.name)}
+          href={buildPreferredGalleryHref(sub.name)}
           onClick={() => onSelect(sub.name)}
           className={`px-3 py-1 text-sm rounded font-medium transition-colors duration-200 ${
             currentSubreddit === sub.name
