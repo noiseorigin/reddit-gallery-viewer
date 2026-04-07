@@ -1,4 +1,10 @@
 import { apiCache } from "./cache";
+import {
+  extractPopularSubreddits,
+  FALLBACK_POPULAR_SUBREDDITS,
+  type PopularSubredditItem,
+  type RedditPopularListing,
+} from "./reddit-feed";
 
 export interface RedditPost {
   id: string;
@@ -6,6 +12,8 @@ export interface RedditPost {
   url: string;
   permalink: string;
   post_hint?: string;
+  over_18?: boolean;
+  thumbnail?: string;
   preview?: {
     images: Array<{
       source: { url: string; width: number; height: number };
@@ -203,21 +211,27 @@ export function filterImagePosts(
   posts: RedditPost[],
   limit: number = 40
 ): RedditPost[] {
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+
   return posts
     .filter(
       (post) =>
-        post.post_hint === "image" ||
-        (post.url &&
-          (post.url.endsWith(".jpg") ||
-            post.url.endsWith(".png") ||
-            post.url.endsWith(".gif")))
+        !post.over_18 &&
+        post.thumbnail !== 'nsfw' &&
+        (
+          post.post_hint === "image" ||
+          (post.url &&
+            allowedExtensions.some((extension) =>
+              post.url.toLowerCase().split('?')[0]?.endsWith(extension)
+            ))
+        )
     )
     .slice(0, limit);
 }
 
 export async function loadPopularSubreddits(
   limit: number = 8
-): Promise<Array<{ name: string; displayName: string }> | null> {
+): Promise<PopularSubredditItem[] | null> {
   try {
     const localUrl = `/api/reddit-feed?kind=popular&limit=${limit}`;
 
@@ -244,28 +258,13 @@ export async function loadPopularSubreddits(
       }
 
       const json = await fetchRedditAPI(buildDirectPopularSubredditsUrl(limit));
-      const items =
-        json?.data?.children
-          ?.map((child: any) => child?.data)
-          ?.filter(
-            (data: any) =>
-              data &&
-              !data.over18 &&
-              !data.quarantine &&
-              !data.hide_ads &&
-              !data.restrict_commenting
-          )
-          ?.slice(0, limit)
-          ?.map((data: any) => ({
-            name: data.display_name,
-            displayName: `🔥 ${data.display_name_prefixed}`,
-          })) || [];
+      const items = extractPopularSubreddits(json as RedditPopularListing, limit);
 
-      return items.length > 0 ? items : null;
+      return items.length > 0 ? items : FALLBACK_POPULAR_SUBREDDITS.slice(0, limit);
     }
   } catch (error) {
     console.warn("Unable to fetch popular subreddits:", error);
-    return null;
+    return FALLBACK_POPULAR_SUBREDDITS.slice(0, limit);
   }
 }
 

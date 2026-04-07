@@ -1,10 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  buildExploreCommunitiesUrl,
   buildPopularSubredditsUrl,
   buildRedditFeedUrl,
+  extractExploreSubreddits,
   extractPopularSubreddits,
+  fetchRedditText,
   fetchRedditJson,
+  mergePopularSubreddits,
 } from './reddit-feed';
 
 describe('buildRedditFeedUrl', () => {
@@ -29,6 +33,12 @@ describe('buildPopularSubredditsUrl', () => {
   });
 });
 
+describe('buildExploreCommunitiesUrl', () => {
+  it('points at the Reddit explore page', () => {
+    expect(buildExploreCommunitiesUrl()).toBe('https://www.reddit.com/explore/');
+  });
+});
+
 describe('extractPopularSubreddits', () => {
   it('filters restricted subreddits and limits the result set', () => {
     const items = extractPopularSubreddits(
@@ -48,6 +58,53 @@ describe('extractPopularSubreddits', () => {
     expect(items).toEqual([
       { name: 'EarthPorn', displayName: '🔥 r/EarthPorn' },
       { name: 'FoodPorn', displayName: '🔥 r/FoodPorn' },
+    ]);
+  });
+});
+
+describe('extractExploreSubreddits', () => {
+  it('extracts unique subreddit links from explore markup', () => {
+    const items = extractExploreSubreddits(
+      `
+        <a href="/r/photography/">Photography</a>
+        <script>
+          window.___r = {
+            "community": "https:\\/\\/www.reddit.com\\/r\\/houseplants\\/",
+            "duplicate": "https:\\/\\/www.reddit.com\\/r\\/photography\\/"
+          };
+        </script>
+        <a href="/r/popular/">Popular</a>
+        <a href="https://www.reddit.com/r/Art/">Art</a>
+      `,
+      3
+    );
+
+    expect(items).toEqual([
+      { name: 'photography', displayName: '🔥 r/photography' },
+      { name: 'houseplants', displayName: '🔥 r/houseplants' },
+      { name: 'Art', displayName: '🔥 r/Art' },
+    ]);
+  });
+});
+
+describe('mergePopularSubreddits', () => {
+  it('deduplicates while preserving source priority', () => {
+    expect(
+      mergePopularSubreddits(
+        4,
+        [
+          { name: 'photography', displayName: '🔥 r/photography' },
+          { name: 'Art', displayName: '🔥 r/Art' },
+        ],
+        [
+          { name: 'art', displayName: '🔥 r/art' },
+          { name: 'houseplants', displayName: '🔥 r/houseplants' },
+        ]
+      )
+    ).toEqual([
+      { name: 'photography', displayName: '🔥 r/photography' },
+      { name: 'Art', displayName: '🔥 r/Art' },
+      { name: 'houseplants', displayName: '🔥 r/houseplants' },
     ]);
   });
 });
@@ -90,5 +147,26 @@ describe('fetchRedditJson', () => {
     await expect(
       fetchRedditJson('https://www.reddit.com/subreddits/popular.json?limit=24', fetchMock)
     ).rejects.toThrow('HTTP 503');
+  });
+
+  it('returns HTML for a successful text response', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue('<html>explore</html>'),
+    });
+
+    await expect(fetchRedditText('https://www.reddit.com/explore/', fetchMock)).resolves.toBe(
+      '<html>explore</html>'
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://www.reddit.com/explore/',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Accept: 'text/html,application/xhtml+xml',
+        }),
+        signal: expect.any(AbortSignal),
+      })
+    );
   });
 });

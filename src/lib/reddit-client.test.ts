@@ -6,6 +6,7 @@ import {
   buildDirectPopularSubredditsUrl,
   buildDirectRedditFeedUrl,
   fetchRedditAPI,
+  filterImagePosts,
   loadPopularSubreddits,
 } from './reddit';
 
@@ -148,5 +149,43 @@ describe('client Reddit API access', () => {
         signal: expect.any(AbortSignal),
       })
     );
+  });
+
+  it('filters out NSFW posts even when they are images', () => {
+    expect(
+      filterImagePosts([
+        {
+          id: 'safe-image',
+          title: 'Safe image',
+          url: 'https://i.redd.it/safe.jpg',
+          permalink: '/r/photography/comments/safe',
+          post_hint: 'image',
+        },
+        {
+          id: 'adult-image',
+          title: 'Adult image',
+          url: 'https://i.redd.it/adult.jpg',
+          permalink: '/r/example/comments/adult',
+          post_hint: 'image',
+          over_18: true,
+        },
+        {
+          id: 'thumbnail-nsfw',
+          title: 'Thumbnail flagged',
+          url: 'https://i.redd.it/thumbnail.jpg',
+          permalink: '/r/example/comments/thumb',
+          post_hint: 'image',
+          thumbnail: 'nsfw',
+        },
+      ])
+    ).toEqual([
+      {
+        id: 'safe-image',
+        title: 'Safe image',
+        url: 'https://i.redd.it/safe.jpg',
+        permalink: '/r/photography/comments/safe',
+        post_hint: 'image',
+      },
+    ]);
   });
 });

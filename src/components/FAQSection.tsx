@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 interface FAQItem {
   question: string;
   answer: string;
@@ -14,37 +16,37 @@ const faqItems: FAQItem[] = [
   {
     question: 'What subreddits can I browse?',
     answer:
-      'You can browse any public subreddit on Reddit! We provide quick buttons for popular image-focused subreddits like photography, nature, art, interior design, food, and more. However, you\'re not limited to these—simply type any subreddit name to explore it as a gallery.',
+      'You can browse any public subreddit on Reddit! We provide quick buttons for popular image-focused subreddits like photography, nature, art, interior design, food, and more. However, you are not limited to these. Simply type any subreddit name to explore it as a gallery.',
   },
   {
     question: 'Do I need a Reddit account or app?',
     answer:
-      'No! Reddit Gallery Viewer is completely free and requires no account, login, or app installation. It\'s a lightweight web application that runs directly in your browser. Simply visit the site and start browsing.',
+      'No. Reddit Gallery Viewer is completely free and requires no account, login, or app installation. It runs directly in your browser.',
   },
   {
     question: 'Can I view image details or comments?',
     answer:
-      'Yes! Click on any image to open it in a modal view where you can see the full-size image and the post title. You can also click the "View on Reddit" button to open the original post on Reddit where you can read comments and interact with the community.',
+      'Yes. Click any image to open it in the modal viewer, then use the View on Reddit action to open the original thread with comments and context.',
   },
   {
     question: 'How do I navigate between images?',
     answer:
-      'In the image preview modal, use the Previous/Next buttons to navigate between images, or use keyboard shortcuts: Left Arrow to go to the previous image, Right Arrow to go to the next image, and Escape to close the modal.',
+      'In the image preview modal, use the Previous and Next buttons or the keyboard shortcuts: Left Arrow, Right Arrow, and Escape.',
   },
   {
     question: 'How are the images displayed?',
     answer:
-      'Images are displayed in a responsive grid layout (1-4 columns depending on screen size) showing the top posts from your selected subreddit. Images are lazily loaded as you scroll for optimal performance.',
+      'Images are shown in a responsive grid layout with size controls, lazy loading, and a cleaner gallery view than a standard Reddit feed.',
   },
   {
     question: 'Is my search history saved?',
     answer:
-      'Yes! Reddit Gallery Viewer saves your recently viewed subreddits in your browser\'s local storage. These appear in the "Recently Viewed" section for quick access. Your data is stored locally and never sent to our servers.',
+      'Yes. Recent searches are stored locally in your browser so you can revisit subreddits more quickly.',
   },
   {
     question: 'Is Reddit Gallery Viewer free?',
     answer:
-      'Yes, completely free! There are no hidden fees, subscriptions, or premium features. We simply provide a beautiful, fast way to browse Reddit subreddits as image galleries.',
+      'Yes, completely free. There are no subscriptions, accounts, or premium tiers.',
   },
 ];
 
@@ -53,24 +55,56 @@ interface FAQSectionProps {
 }
 
 export function FAQSection({ primaryColor }: FAQSectionProps) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
   return (
-    <section className="mt-16 max-w-3xl mx-auto">
-      <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: primaryColor }}>
+    <section className="mx-auto mt-16 max-w-3xl">
+      <h2 className="mb-8 text-center text-3xl font-bold" style={{ color: primaryColor }}>
         Frequently Asked Questions
       </h2>
       <div className="space-y-4">
-        {faqItems.map((item, index) => (
-          <details
-            key={index}
-            className="border-2 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-            style={{ borderColor: '#ff6d00' }}
-          >
-            <summary className="font-semibold text-lg" style={{ color: primaryColor }}>
-              {item.question}
-            </summary>
-            <p className="mt-3 text-gray-700 leading-relaxed">{item.answer}</p>
-          </details>
-        ))}
+        {faqItems.map((item, index) => {
+          const isOpen = openIndex === index;
+
+          return (
+            <article
+              key={item.question}
+              className="rounded-xl border-2 bg-white transition-colors hover:bg-gray-50"
+              style={{ borderColor: '#ff6d00' }}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenIndex(isOpen ? null : index)}
+                aria-expanded={isOpen}
+                className="flex w-full items-start justify-between gap-4 px-4 py-4 text-left"
+              >
+                <span className="text-lg font-semibold" style={{ color: primaryColor }}>
+                  {item.question}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-transform"
+                  style={{
+                    borderColor: '#ff6d00',
+                    color: primaryColor,
+                    transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+                  }}
+                >
+                  +
+                </span>
+              </button>
+
+              <div
+                className="grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out"
+                style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+              >
+                <div className="overflow-hidden">
+                  <p className="px-4 pb-4 text-gray-700 leading-relaxed">{item.answer}</p>
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

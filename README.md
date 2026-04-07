@@ -106,11 +106,14 @@ git push origin main  # Auto-deploys to Vercel
 
 None required for basic functionality. Optional:
 - `NEXT_PUBLIC_GA_ID` - Override Google Analytics ID
+- `NEXT_PUBLIC_SITE_URL` - Override the canonical production site URL used in metadata
+- `NEXT_PUBLIC_CONTACT_EMAIL` - Override the public contact email shown in the footer and contact page
 
 ### Analytics & Ads
 
 - Google Analytics is loaded from `src/app/layout.tsx`
 - Google AdSense is loaded globally from `src/app/layout.tsx` with publisher ID `ca-pub-3491512248260741`
+- `public/ads.txt` authorizes the AdSense publisher for the live domain
 
 ## 📊 Browser Support
 

@@ -1,81 +1,135 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { DropdownMenu } from './DropdownMenu';
+import { FAQSection } from './FAQSection';
+import { GalleryGrid } from './GalleryGrid';
+import { ImageModal } from './ImageModal';
+import { SubredditButtons } from './SubredditButtons';
+import { FALLBACK_POPULAR_SUBREDDITS } from '@/lib/reddit-feed';
 import {
   buildApiUrl,
   fetchRedditAPI,
   filterImagePosts,
   loadPopularSubreddits,
   parseSubredditName,
-  RedditPost,
-  RedditResponse,
-} from "@/lib/reddit";
+  type RedditPost,
+  type RedditResponse,
+} from '@/lib/reddit';
+import { getMobileOptimizations, logMobileOptimizations } from '@/lib/mobile';
 import {
   addToSearchHistory,
   getSearchHistory,
   readCachedPopularSubreddits,
   storePopularSubreddits,
-} from "@/lib/storage";
-import {
-  getOptimalBackgroundColor,
-  lightenColor,
-  darkenColor,
-  getColorBrightness,
-  getTextColorForBackground,
-} from "@/lib/colors";
-import { GalleryGrid } from "./GalleryGrid";
-import { SubredditButtons } from "./SubredditButtons";
-import { TimeFilterButtons, TimeFilter } from "./TimeFilterButtons";
-import { SortFilterButtons, SortOption, SORT_OPTIONS } from "./SortFilterButtons";
-import { GridSizeButtons, GridSize, GRID_SIZES } from "./GridSizeButtons";
-import { DropdownMenu } from "./DropdownMenu";
-import { ImageModal } from "./ImageModal";
-import { FAQSection } from "./FAQSection";
-import { getMobileOptimizations, logMobileOptimizations } from "@/lib/mobile";
-
-const DEFAULT_SUBREDDITS = [
-  { name: "photography", displayName: "📸 Photography" },
-  { name: "EarthPorn", displayName: "🌍 Nature" },
-  { name: "CatsStandingUp", displayName: "🐱 Cats" },
-  { name: "InteriorDesign", displayName: "🏠 Interior Design" },
-  { name: "Art", displayName: "🎨 Art" },
-  { name: "FoodPorn", displayName: "🍕 Food" },
-  { name: "houseplants", displayName: "🌱 Houseplants" },
-];
+} from '@/lib/storage';
+import { GRID_SIZES } from './GridSizeButtons';
+import { SORT_OPTIONS, type SortOption } from './SortFilterButtons';
+import type { TimeFilter } from './TimeFilterButtons';
 
 const TIME_FILTERS: TimeFilter[] = [
-  { name: "day", displayName: "📆 Today" },
-  { name: "week", displayName: "📅 This Week" },
-  { name: "month", displayName: "📊 This Month" },
+  { name: 'day', displayName: 'Today' },
+  { name: 'week', displayName: 'This Week' },
+  { name: 'month', displayName: 'This Month' },
 ];
 
-const PRIMARY_COLOR = "#FF4500";
+const PRIMARY_COLOR = '#FF4500';
+
+type SearchHistoryItem = {
+  name: string;
+  displayName: string;
+};
+
+type QuickView = {
+  title: string;
+  subtitle: string;
+  subreddit: string;
+  time: TimeFilter['name'];
+  sort: SortOption['name'];
+};
+
+interface QuickViewButtonProps {
+  isActive: boolean;
+  onClick: () => void;
+  view: QuickView;
+}
+
+const QUICK_VIEWS: QuickView[] = [
+  {
+    title: 'Nature picks',
+    subtitle: 'EarthPorn · Top · This Month',
+    subreddit: 'EarthPorn',
+    time: 'month',
+    sort: 'top',
+  },
+  {
+    title: 'Fresh interiors',
+    subtitle: 'InteriorDesign · New · This Week',
+    subreddit: 'InteriorDesign',
+    time: 'week',
+    sort: 'new',
+  },
+  {
+    title: 'Cats now',
+    subtitle: 'CatsStandingUp · Hot · Today',
+    subreddit: 'CatsStandingUp',
+    time: 'day',
+    sort: 'hot',
+  },
+  {
+    title: 'Food highlights',
+    subtitle: 'FoodPorn · Best · This Week',
+    subreddit: 'FoodPorn',
+    time: 'week',
+    sort: 'best',
+  },
+];
+
+function QuickViewButton({ isActive, onClick, view }: QuickViewButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-2xl border px-4 py-3 text-left transition-all hover:-translate-y-0.5"
+      style={{
+        backgroundColor: isActive ? PRIMARY_COLOR : '#fffaf5',
+        borderColor: isActive ? PRIMARY_COLOR : '#fed7aa',
+        color: isActive ? '#ffffff' : '#9a3412',
+      }}
+    >
+      <span className="block text-sm font-semibold">{view.title}</span>
+      <span
+        className="mt-1 block text-xs"
+        style={{ color: isActive ? 'rgba(255,255,255,0.82)' : '#7c2d12' }}
+      >
+        {view.subtitle}
+      </span>
+    </button>
+  );
+}
 
 export function GalleryPage() {
   const searchParams = useSearchParams();
 
-  const [subreddits, setSubreddits] = useState(DEFAULT_SUBREDDITS);
-  const [currentSubreddit, setCurrentSubreddit] = useState("photography");
+  const [subreddits, setSubreddits] = useState(FALLBACK_POPULAR_SUBREDDITS);
+  const [currentSubreddit, setCurrentSubreddit] = useState('photography');
   const [currentTimeFilter, setCurrentTimeFilter] = useState(TIME_FILTERS[0]);
-  const [currentSort, setCurrentSort] = useState(SORT_OPTIONS[2]); // Default to "Top"
-  const [currentGridSize, setCurrentGridSize] = useState(GRID_SIZES[1]); // Default to "Medium"
+  const [currentSort, setCurrentSort] = useState(SORT_OPTIONS[2]);
+  const [currentGridSize, setCurrentGridSize] = useState(GRID_SIZES[1]);
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalIndex, setModalIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<
-    Array<{ name: string; displayName: string }>
-  >([]);
-  const [shareMessage, setShareMessage] = useState("");
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [shareMessage, setShareMessage] = useState('');
   const requestIdRef = useRef(0);
 
-  // Load popular subreddits on mount
   useEffect(() => {
     const requestedSubreddit = parseSubredditName(searchParams.get('sub') ?? '');
 
-    // Log mobile optimizations on first load
     if (typeof window !== 'undefined') {
       logMobileOptimizations();
       const optimizations = getMobileOptimizations();
@@ -89,13 +143,12 @@ export function GalleryPage() {
         if (!requestedSubreddit) {
           setCurrentSubreddit(cached[0].name);
         }
-        return;
       }
 
       const popular = await loadPopularSubreddits();
       if (popular) {
         setSubreddits(popular);
-        if (!requestedSubreddit) {
+        if (!requestedSubreddit && !cached) {
           setCurrentSubreddit(popular[0].name);
         }
         storePopularSubreddits(popular);
@@ -105,57 +158,57 @@ export function GalleryPage() {
     loadPopular();
   }, [searchParams]);
 
-  // Load URL parameters
   useEffect(() => {
-    const sub = searchParams.get("sub");
-    const time = searchParams.get("time");
-    const sort = searchParams.get("sort");
+    const sub = searchParams.get('sub');
+    const time = searchParams.get('time');
+    const sort = searchParams.get('sort');
 
     if (sub) {
       const parsed = parseSubredditName(sub);
-      if (parsed) setCurrentSubreddit(parsed);
+      if (parsed) {
+        setCurrentSubreddit(parsed);
+      }
     }
 
     if (time) {
-      const filter = TIME_FILTERS.find((f) => f.name === time);
-      if (filter) setCurrentTimeFilter(filter);
+      const filter = TIME_FILTERS.find((item) => item.name === time);
+      if (filter) {
+        setCurrentTimeFilter(filter);
+      }
     }
 
     if (sort) {
-      const sortOption = SORT_OPTIONS.find((s) => s.name === sort);
-      if (sortOption) setCurrentSort(sortOption);
+      const nextSort = SORT_OPTIONS.find((item) => item.name === sort);
+      if (nextSort) {
+        setCurrentSort(nextSort);
+      }
     }
   }, [searchParams]);
 
-  // Load search history
   useEffect(() => {
     setSearchHistory(getSearchHistory());
   }, []);
 
-  // Update document title dynamically based on current subreddit
   useEffect(() => {
-    const matched = subreddits.find((s) => s.name === currentSubreddit);
+    const matched = subreddits.find((item) => item.name === currentSubreddit);
     const displayLabel = matched?.displayName || `/r/${currentSubreddit}`;
-
-    // Update page title for SEO
     const title = `r/${currentSubreddit} Gallery - ${currentSort.displayName} Images | Reddit Gallery Viewer`;
-    const description = `Browse ${displayLabel} subreddit as a beautiful image gallery. View ${currentSort.displayName.toLowerCase()} images from the last ${currentTimeFilter.displayName.toLowerCase()}. Free, no sign-up needed.`;
+    const description = `Browse ${displayLabel} as a clean gallery. View ${currentSort.displayName.toLowerCase()} images from ${currentTimeFilter.displayName.toLowerCase()} without the clutter of a standard Reddit feed.`;
 
     document.title = title;
 
-    // Update meta description dynamically
-    let metaDescription = document.querySelector('meta[name="description"]');
+    const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute('content', description);
-    } else {
-      const newMeta = document.createElement('meta') as HTMLMetaElement;
-      newMeta.name = 'description';
-      newMeta.content = description;
-      document.head.appendChild(newMeta);
+      return;
     }
+
+    const nextMeta = document.createElement('meta');
+    nextMeta.name = 'description';
+    nextMeta.content = description;
+    document.head.appendChild(nextMeta);
   }, [currentSubreddit, currentSort, currentTimeFilter, subreddits]);
 
-  // Fetch images
   const fetchImages = useCallback(async () => {
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
@@ -176,30 +229,24 @@ export function GalleryPage() {
         40
       );
 
-      if (filteredPosts.length === 0) {
-        setPosts([]);
-      } else {
-        setPosts(filteredPosts);
-      }
+      setPosts(filteredPosts);
 
-      // Update search history
-      const matched = subreddits.find((s) => s.name === currentSubreddit);
+      const matched = subreddits.find((item) => item.name === currentSubreddit);
       const displayLabel = matched?.displayName || `/r/${currentSubreddit}`;
       addToSearchHistory({ name: currentSubreddit, displayName: displayLabel });
       setSearchHistory(getSearchHistory());
 
-      // Update URL
-      const url_obj = new URL(window.location.href);
-      url_obj.searchParams.set("sub", currentSubreddit);
-      url_obj.searchParams.set("time", currentTimeFilter.name);
-      url_obj.searchParams.set("sort", currentSort.name);
-      window.history.replaceState(null, "", url_obj.toString());
-    } catch (err) {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set('sub', currentSubreddit);
+      nextUrl.searchParams.set('time', currentTimeFilter.name);
+      nextUrl.searchParams.set('sort', currentSort.name);
+      window.history.replaceState(null, '', nextUrl.toString());
+    } catch {
       if (requestId !== requestIdRef.current) {
         return;
       }
 
-      setError("Failed to load images. Please try again later.");
+      setError('Failed to load images. Please try again later.');
       setPosts([]);
     } finally {
       if (requestId === requestIdRef.current) {
@@ -208,254 +255,420 @@ export function GalleryPage() {
     }
   }, [currentSubreddit, currentTimeFilter, currentSort, subreddits]);
 
-  // Fetch images when parameters change
   useEffect(() => {
     fetchImages();
   }, [fetchImages]);
-
-  const handleSubredditSelect = (name: string) => {
-    if (name === currentSubreddit) return;
-    setCurrentSubreddit(name);
-  };
 
   const handleCustomSubreddit = (input: string) => {
     const parsed = parseSubredditName(input);
     if (parsed) {
       setCurrentSubreddit(parsed);
-    } else {
-      alert("Invalid subreddit name or link format.");
+      return;
+    }
+
+    alert('Invalid subreddit name or link format.');
+  };
+
+  const submitInputValue = (input: HTMLInputElement | null) => {
+    const value = input?.value?.trim() ?? '';
+    if (!value) {
+      return;
+    }
+
+    handleCustomSubreddit(value);
+    if (input) {
+      input.value = '';
     }
   };
 
   const handleClearHistory = () => {
-    localStorage.removeItem("searchHistory");
+    localStorage.removeItem('searchHistory');
     setSearchHistory([]);
   };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      setShareMessage("✓ Copied to clipboard!");
-      setTimeout(() => setShareMessage(""), 2000);
+      setShareMessage('Link copied to clipboard.');
+      window.setTimeout(() => setShareMessage(''), 2000);
     });
   };
 
-  const matchedSubreddit = subreddits.find((s) => s.name === currentSubreddit);
-  const displayLabel =
-    matchedSubreddit?.displayName || `/r/${currentSubreddit}`;
+  const handleQuickView = (view: QuickView) => {
+    setCurrentSubreddit(view.subreddit);
 
-  // Apply theme colors
-  const light = lightenColor(PRIMARY_COLOR, 30);
-  const lighter = lightenColor(PRIMARY_COLOR, 60);
-  const bgLight = getOptimalBackgroundColor(PRIMARY_COLOR);
+    const nextTimeFilter = TIME_FILTERS.find((item) => item.name === view.time);
+    if (nextTimeFilter) {
+      setCurrentTimeFilter(nextTimeFilter);
+    }
+
+    const nextSort = SORT_OPTIONS.find((item) => item.name === view.sort);
+    if (nextSort) {
+      setCurrentSort(nextSort);
+    }
+  };
+
+  const matchedSubreddit = subreddits.find((item) => item.name === currentSubreddit);
+  const displayLabel = matchedSubreddit?.displayName || `/r/${currentSubreddit}`;
+  const showFallbackPanel = Boolean(error) || (!isLoading && posts.length === 0);
+  const fallbackTitle = error ? 'Reddit is slow right now' : 'No safe image posts found yet';
+  const fallbackDescription = error
+    ? 'The gallery can temporarily hit Reddit rate limits. Try a preset below or switch to a broader time range.'
+    : 'Some communities are text-heavy or quiet at the moment. Try one of these visual-first presets to keep exploring.';
+  const fallbackViews = QUICK_VIEWS.filter((view) => view.subreddit !== currentSubreddit).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-white">
-      <style>{`
-        :root {
-          --color-primary: ${PRIMARY_COLOR};
-          --color-primary-light: ${light};
-          --color-primary-lighter: ${lighter};
-          --color-primary-bg: ${bgLight};
-        }
-      `}</style>
-
-      <div className="container mx-auto p-4 md:p-8">
-        {/* Header with Search & Dropdowns */}
-        <header className="mb-6">
-          <div className="flex items-start justify-between gap-3 mb-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden">
+    <div
+      className="min-h-screen text-gray-800"
+      style={{
+        backgroundColor: '#fcfaf7',
+        backgroundImage:
+          'radial-gradient(circle at top left, rgba(255, 132, 76, 0.12), transparent 28%), linear-gradient(180deg, #fcfaf7 0%, #ffffff 24%, #fff7ef 100%)',
+      }}
+    >
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-10 lg:px-8">
+        <header className="space-y-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="h-14 w-14 shrink-0 rounded-2xl border border-orange-200 bg-white p-2 shadow-sm">
                 <img
                   src="/rgv_logo.png"
-                  alt="Reddit Gallery Viewer Logo"
-                  className="w-full h-full object-contain"
+                  alt="Reddit Gallery Viewer logo"
+                  className="h-full w-full object-contain"
                 />
               </div>
-              <div>
-                <h1
-                  className="text-4xl font-bold"
-                  style={{ color: PRIMARY_COLOR }}
-                >
-                  Reddit Gallery Viewer
+              <div className="space-y-2">
+                <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+                  Search a subreddit and view it as a gallery.
                 </h1>
-                <p className="text-lg mt-1" style={{ color: "#ff6d00" }}>
-                  Free Online Tool to Browse Subreddits as Image Galleries
+                <p className="max-w-3xl text-base leading-relaxed text-gray-700">
+                  Browse public image posts in a cleaner layout and open Reddit only when you want the full thread.
                 </p>
               </div>
             </div>
 
-            {/* Right Controls - Search + Dropdowns */}
-            <div className="flex flex-col gap-3 flex-shrink-0">
-              {/* Search Input */}
-              <div className="w-64">
-                <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase">
-                  🔍 Search
-                </label>
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    placeholder="photography..."
-                    className="flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none text-sm text-gray-800"
-                    style={{ borderColor: PRIMARY_COLOR }}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        const target = e.target as HTMLInputElement;
-                        handleCustomSubreddit(target.value);
-                        target.value = "";
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={(e) => {
-                      const input = (
-                        e.currentTarget.previousElementSibling as HTMLInputElement
-                      )?.value;
-                      if (input) {
-                        handleCustomSubreddit(input);
-                        (
-                          e.currentTarget.previousElementSibling as HTMLInputElement
-                        ).value = "";
-                      }
-                    }}
-                    className="px-4 text-white font-semibold rounded-lg transition-colors text-sm"
-                    style={{ backgroundColor: PRIMARY_COLOR }}
-                  >
-                    Go
-                  </button>
-                </div>
+            <div className="rounded-2xl border border-orange-100 bg-white/90 px-4 py-3 text-sm leading-relaxed text-gray-700">
+              No login required. Public communities only.
+            </div>
+          </div>
+
+          <div className="grid gap-4 rounded-[28px] border border-orange-100 bg-white/92 p-4 shadow-[0_12px_40px_rgba(163,73,20,0.08)] lg:grid-cols-[minmax(0,1.3fr)_auto] lg:items-end md:p-6">
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                Search
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="photography, r/Art, reddit URL..."
+                  className="min-w-0 flex-1 rounded-2xl border border-orange-200 bg-[#fffaf5] px-4 py-3 text-sm text-gray-800 outline-none transition-shadow focus:ring-2 focus:ring-orange-200"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      submitInputValue(event.currentTarget);
+                    }
+                  }}
+                />
+                <button
+                  onClick={(event) => {
+                    submitInputValue(
+                      event.currentTarget.previousElementSibling as HTMLInputElement | null
+                    );
+                  }}
+                  className="rounded-2xl px-4 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+                  style={{ backgroundColor: PRIMARY_COLOR }}
+                >
+                  Go
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[340px] lg:grid-cols-3">
+              <DropdownMenu
+                icon=""
+                label={`Time: ${currentTimeFilter.displayName}`}
+                items={TIME_FILTERS}
+                currentItem={currentTimeFilter}
+                onSelect={setCurrentTimeFilter}
+                primaryColor={PRIMARY_COLOR}
+              />
+              <DropdownMenu
+                icon=""
+                label={`Sort: ${currentSort.displayName}`}
+                items={SORT_OPTIONS}
+                currentItem={currentSort}
+                onSelect={setCurrentSort}
+                primaryColor={PRIMARY_COLOR}
+              />
+              <DropdownMenu
+                icon=""
+                label={`Size: ${currentGridSize.displayName}`}
+                items={GRID_SIZES}
+                currentItem={currentGridSize}
+                onSelect={setCurrentGridSize}
+                primaryColor={PRIMARY_COLOR}
+              />
+            </div>
+
+            <div className="border-t border-orange-100 pt-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  Quick views
+                </p>
+                <p className="text-sm text-gray-600">
+                  Useful starting points for inspiration browsing.
+                </p>
               </div>
 
-              {/* Dropdowns */}
-              <div className="flex gap-2">
-                <DropdownMenu
-                  icon="📅"
-                  label="Time"
-                  items={TIME_FILTERS}
-                  currentItem={currentTimeFilter}
-                  onSelect={setCurrentTimeFilter}
-                  primaryColor={PRIMARY_COLOR}
-                />
-                <DropdownMenu
-                  icon="✨"
-                  label="Sort"
-                  items={SORT_OPTIONS}
-                  currentItem={currentSort}
-                  onSelect={setCurrentSort}
-                  primaryColor={PRIMARY_COLOR}
-                />
-                <DropdownMenu
-                  icon="📐"
-                  label="Size"
-                  items={GRID_SIZES}
-                  currentItem={currentGridSize}
-                  onSelect={setCurrentGridSize}
-                  primaryColor={PRIMARY_COLOR}
-                />
+              <div className="mt-3 flex flex-wrap gap-2">
+                {QUICK_VIEWS.map((view) => {
+                  const isActive =
+                    currentSubreddit === view.subreddit &&
+                    currentTimeFilter.name === view.time &&
+                    currentSort.name === view.sort;
+
+                  return (
+                    <QuickViewButton
+                      key={`${view.subreddit}-${view.time}-${view.sort}`}
+                      isActive={isActive}
+                      onClick={() => handleQuickView(view)}
+                      view={view}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[
+                  'Design inspiration',
+                  'Photography references',
+                  'Moodboard browsing',
+                  'Shareable filtered URLs',
+                ].map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-orange-100 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
+                  >
+                    {item}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
-          <p className="text-sm text-gray-600">
-            View top images from any Reddit subreddit with beautiful galleries
-            and dynamic color themes.
-          </p>
         </header>
 
-        {/* Filters Section */}
-        <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-          {/* Popular Subreddits */}
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
-                Popular Subreddits
+        <section className="mt-8 rounded-[28px] border border-orange-100 bg-white/90 p-4 shadow-[0_12px_40px_rgba(163,73,20,0.08)] md:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                Popular communities
               </p>
+              <div className="mt-3">
+                <SubredditButtons
+                  subreddits={subreddits}
+                  currentSubreddit={currentSubreddit}
+                  onSelect={setCurrentSubreddit}
+                  primaryColor={PRIMARY_COLOR}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handleShare}
-                className="px-2 py-1 rounded text-xs font-semibold transition-colors text-white"
+                className="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
                 style={{ backgroundColor: PRIMARY_COLOR }}
-                title="Share current gallery"
               >
-                🔗
+                Share view
               </button>
+              {shareMessage ? (
+                <p className="text-sm font-medium text-green-700">{shareMessage}</p>
+              ) : null}
             </div>
-            <SubredditButtons
-              subreddits={subreddits}
-              currentSubreddit={currentSubreddit}
-              onSelect={handleSubredditSelect}
-              primaryColor={PRIMARY_COLOR}
-            />
-            {shareMessage && (
-              <p className="text-xs text-green-600 font-semibold mt-2">
-                {shareMessage}
-              </p>
-            )}
           </div>
 
-          {/* Recently Viewed */}
-          {searchHistory.length > 0 && (
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase">
-                  Recently Viewed
+          {searchHistory.length > 0 ? (
+            <div className="mt-6">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  Recent searches
                 </p>
                 <button
                   onClick={handleClearHistory}
-                  className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors"
+                  className="text-sm font-medium text-gray-500 underline underline-offset-4 hover:text-red-600"
                 >
-                  Clear
+                  Clear history
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {searchHistory.map((item) => (
                   <button
                     key={item.name}
                     onClick={() => setCurrentSubreddit(item.name)}
-                    className="px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    style={{ color: PRIMARY_COLOR }}
+                    className="rounded-full border border-gray-200 bg-[#f8f6f2] px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-orange-200 hover:text-orange-700"
                   >
                     {item.displayName}
                   </button>
                 ))}
               </div>
             </div>
-          )}
-        </div>
+          ) : null}
+        </section>
 
-        {/* Title Section */}
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
-            {`Reddit ${matchedSubreddit?.name || currentSubreddit} Gallery`}
-          </h2>
-          <p className="text-gray-600 mt-2">
-            {`${currentSort.displayName} images from ${displayLabel} (${currentTimeFilter.displayName})`}
-          </p>
-        </div>
+        <section className="mt-8 space-y-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
+                Live gallery
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900">
+                {displayLabel}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">
+                {currentSort.displayName} posts from {currentTimeFilter.displayName}.
+              </p>
+            </div>
+            <div className="max-w-md rounded-2xl border border-orange-100 bg-white/80 px-4 py-3 text-sm leading-relaxed text-gray-700">
+              {error
+                ? 'Reddit may be rate-limiting requests right now. Try again shortly.'
+                : 'Click an image to open it in the full viewer.'}
+            </div>
+          </div>
 
-        {/* Gallery Grid */}
-        <GalleryGrid
-          posts={posts}
-          onImageClick={(index) => {
-            setModalIndex(index);
-            setIsModalOpen(true);
-          }}
-          onImageError={() => {}}
-          onImageLoad={() => {}}
-          isLoading={isLoading}
-          error={error}
-          gridCols={currentGridSize.cols}
-        />
+          <div className="rounded-[28px] border border-orange-100 bg-white/92 p-4 shadow-[0_18px_50px_rgba(163,73,20,0.08)] md:p-6">
+            <GalleryGrid
+              posts={posts}
+              onImageClick={(index) => {
+                setModalIndex(index);
+                setIsModalOpen(true);
+              }}
+              onImageError={() => {}}
+              onImageLoad={() => {}}
+              isLoading={isLoading}
+              error={error}
+              gridCols={currentGridSize.cols}
+            />
+          </div>
 
-        {/* FAQ Section */}
-        <FAQSection primaryColor={PRIMARY_COLOR} />
-      </div>
+          {showFallbackPanel ? (
+            <div className="rounded-[24px] border border-orange-100 bg-[#fff8f1] p-5 shadow-[0_12px_32px_rgba(163,73,20,0.06)]">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-2xl">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
+                    Keep browsing
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold text-gray-900">{fallbackTitle}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-700">
+                    {fallbackDescription}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                    <Link
+                      href="/about"
+                      className="font-medium text-orange-700 underline underline-offset-4"
+                    >
+                      How this viewer works
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="font-medium text-orange-700 underline underline-offset-4"
+                    >
+                      Report a loading issue
+                    </Link>
+                  </div>
+                </div>
 
-      {/* Image Modal */}
+                <div className="lg:max-w-lg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    Suggested presets
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {fallbackViews.map((view) => {
+                      const isActive =
+                        currentSubreddit === view.subreddit &&
+                        currentTimeFilter.name === view.time &&
+                        currentSort.name === view.sort;
+
+                      return (
+                        <QuickViewButton
+                          key={`fallback-${view.subreddit}-${view.time}-${view.sort}`}
+                          isActive={isActive}
+                          onClick={() => handleQuickView(view)}
+                          view={view}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </section>
+
+        <section className="mt-10 grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+          <aside className="rounded-[28px] border border-orange-100 bg-white/92 p-6 shadow-[0_16px_50px_rgba(163,73,20,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">
+              Why this tool helps
+            </p>
+            <div className="mt-4 space-y-4 text-sm leading-relaxed text-gray-700">
+              <p>This tool makes image-heavy communities easier to scan, compare, and revisit.</p>
+              <ul className="space-y-2">
+                <li>Start from quick presets or popular communities instead of a blank search.</li>
+                <li>Keep a cleaner gallery view, then open Reddit only for full thread context.</li>
+                <li>Recent searches stay in your browser, not in a user account.</li>
+              </ul>
+              <div className="rounded-2xl border border-orange-100 bg-[#fff8f1] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  Common uses
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    'Creative inspiration',
+                    'Interior ideas',
+                    'Food discovery',
+                    'Casual image browsing',
+                  ].map((item) => (
+                    <span
+                      key={item}
+                      className="rounded-full border border-orange-100 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-orange-100 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  Content standards
+                </p>
+                <p className="mt-3">
+                  The viewer is built for public, image-first communities. It filters restricted
+                  community lists, excludes NSFW image posts from the gallery, and links every
+                  browse session back to the original Reddit thread for context.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <Link href="/about" className="font-medium text-orange-700 underline underline-offset-4">
+                  About
+                </Link>
+                <Link href="/privacy" className="font-medium text-orange-700 underline underline-offset-4">
+                  Privacy Policy
+                </Link>
+                <Link href="/contact" className="font-medium text-orange-700 underline underline-offset-4">
+                  Contact
+                </Link>
+              </div>
+            </div>
+          </aside>
+
+          <FAQSection primaryColor={PRIMARY_COLOR} />
+        </section>
+      </main>
+
       <ImageModal
         isOpen={isModalOpen}
         currentIndex={modalIndex}
         posts={posts}
         onClose={() => setIsModalOpen(false)}
-        onNext={() => setModalIndex((i) => Math.min(i + 1, posts.length - 1))}
-        onPrevious={() => setModalIndex((i) => Math.max(i - 1, 0))}
+        onNext={() => setModalIndex((index) => Math.min(index + 1, posts.length - 1))}
+        onPrevious={() => setModalIndex((index) => Math.max(index - 1, 0))}
         primaryColor={PRIMARY_COLOR}
       />
     </div>

@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import {
+  buildExploreCommunitiesUrl,
   buildPopularSubredditsUrl,
   buildRedditFeedUrl,
+  extractExploreSubreddits,
   extractPopularSubreddits,
+  FALLBACK_POPULAR_SUBREDDITS,
+  fetchRedditText,
   fetchRedditJson,
+  mergePopularSubreddits,
+  type PopularSubredditItem,
   type RedditPopularListing,
 } from '@/lib/reddit-feed';
 
@@ -20,13 +26,39 @@ export async function GET(request: NextRequest) {
   try {
     if (kind === 'popular') {
       const limit = parsePositiveInt(params.get('limit'), 8);
-      const payload = await fetchRedditJson<RedditPopularListing>(
-        buildPopularSubredditsUrl(limit)
+      const sources: PopularSubredditItem[][] = [];
+
+      try {
+        const exploreHtml = await fetchRedditText(buildExploreCommunitiesUrl());
+        const exploreItems = extractExploreSubreddits(exploreHtml, limit);
+        if (exploreItems.length > 0) {
+          sources.push(exploreItems);
+        }
+      } catch (error) {
+        console.warn('[REDDIT FEED] Explore communities fetch failed:', error);
+      }
+
+      if (mergePopularSubreddits(limit, ...sources).length < limit) {
+        try {
+          const payload = await fetchRedditJson<RedditPopularListing>(
+            buildPopularSubredditsUrl(limit)
+          );
+          const popularItems = extractPopularSubreddits(payload, limit);
+          if (popularItems.length > 0) {
+            sources.push(popularItems);
+          }
+        } catch (error) {
+          console.warn('[REDDIT FEED] Popular communities fetch failed:', error);
+        }
+      }
+
+      const items = mergePopularSubreddits(
+        limit,
+        ...sources,
+        FALLBACK_POPULAR_SUBREDDITS.slice(0, limit)
       );
 
-      return NextResponse.json({
-        items: extractPopularSubreddits(payload, limit),
-      });
+      return NextResponse.json({ items });
     }
 
     const subreddit = params.get('subreddit');

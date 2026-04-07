@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
+
+import { SiteFooter } from '@/components/SiteFooter';
+import { ADSENSE_CLIENT, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
+
 import './globals.css';
 
 const inter = Inter({
@@ -10,45 +14,40 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Reddit Gallery Viewer - Free Online Image Gallery Tool | Browse Subreddits',
-  description:
-    'Turn any Reddit subreddit into a beautiful image gallery instantly. Browse photography, nature, art, memes and more with dynamic color themes. Fast, free, no sign-up needed.',
+  metadataBase: new URL(SITE_URL),
+  title: `${SITE_NAME} - Free Online Image Gallery Tool | Browse Subreddits`,
+  description: SITE_DESCRIPTION,
   keywords:
     'reddit gallery, subreddit gallery, reddit image viewer, reddit photo gallery, free reddit tool, browse reddit images, image gallery maker, reddit browser, top reddit posts',
-  authors: [{ name: 'Reddit Gallery Viewer Team' }],
-  creator: 'Reddit Gallery Viewer',
+  authors: [{ name: `${SITE_NAME} Team` }],
+  creator: SITE_NAME,
   robots: {
     index: true,
     follow: true,
     'max-image-preview': 'large',
   },
   openGraph: {
-    title: 'Reddit Gallery Viewer - Free Image Gallery Tool',
-    description:
-      'Transform any subreddit into a stunning image gallery. Perfect for photography, art, nature, and memes. No sign-up required!',
+    title: `${SITE_NAME} - Free Image Gallery Tool`,
+    description: SITE_DESCRIPTION,
     type: 'website',
-    url: 'https://reddit-gallery-viewer.vercel.app/',
-    siteName: 'Reddit Gallery Viewer',
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: 'en_US',
     images: [
       {
-        url: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
+        url: `${SITE_URL}/rgv_logo.png`,
         width: 1200,
         height: 630,
-        alt: 'Reddit Gallery Viewer - Browse Reddit Subreddits as Image Galleries',
+        alt: `${SITE_NAME} - Browse Reddit Subreddits as Image Galleries`,
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Reddit Gallery Viewer - Free Online Image Gallery',
-    description:
-      'Browse any Reddit subreddit as a beautiful image gallery. Photography, art, nature, memes and more!',
-    images: [
-      'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
-    ],
-    creator: '@RedditGallery',
+    title: `${SITE_NAME} - Free Online Image Gallery`,
+    description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/rgv_logo.png`],
   },
   icons: {
     icon: '/rgv_logo.png',
@@ -71,12 +70,11 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <head>
         <meta charSet="utf-8" />
-        <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
 
         {/* Additional SEO Meta Tags */}
         <meta name="language" content="English" />
         <meta name="revisit-after" content="7 days" />
-        <meta name="author" content="Reddit Gallery Viewer" />
+        <meta name="author" content={SITE_NAME} />
         <meta name="distribution" content="global" />
         <meta name="rating" content="general" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -96,14 +94,13 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
-              name: 'Reddit Gallery Viewer',
-              description:
-                'Transform any Reddit subreddit into a beautiful image gallery with dynamic color themes. Browse photography, art, nature, memes and more.',
-              url: 'https://reddit-gallery-viewer.vercel.app/',
+              name: SITE_NAME,
+              description: SITE_DESCRIPTION,
+              url: SITE_URL,
               applicationCategory: 'UtilityApplication',
               image: {
                 '@type': 'ImageObject',
-                url: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
+                url: `${SITE_URL}/rgv_logo.png`,
                 width: 1200,
                 height: 630,
               },
@@ -115,24 +112,18 @@ export default function RootLayout({
               },
               author: {
                 '@type': 'Organization',
-                name: 'Reddit Gallery Viewer',
-                url: 'https://reddit-gallery-viewer.vercel.app/',
-                logo: 'https://reddit-gallery-viewer.vercel.app/rgv_logo.png',
+                name: SITE_NAME,
+                url: SITE_URL,
+                logo: `${SITE_URL}/rgv_logo.png`,
               },
               operatingSystem: 'Web',
               browserRequirements: 'Requires JavaScript',
-              aggregateRating: {
-                '@type': 'AggregateRating',
-                ratingValue: '4.8',
-                ratingCount: '250',
-                bestRating: '5',
-                worstRating: '1',
-              },
+              isAccessibleForFree: true,
               potentialAction: {
                 '@type': 'SearchAction',
                 target: {
                   '@type': 'EntryPoint',
-                  urlTemplate: 'https://reddit-gallery-viewer.vercel.app/?sub={search_term_string}',
+                  urlTemplate: `${SITE_URL}/?sub={search_term_string}`,
                 },
                 'query-input': 'required name=search_term_string',
               },
@@ -144,7 +135,7 @@ export default function RootLayout({
       </head>
       <body className="bg-white text-gray-800">
         <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3491512248260741"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
           strategy="afterInteractive"
           crossOrigin="anonymous"
         />
@@ -156,6 +147,7 @@ export default function RootLayout({
           {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-SSS54C3THS');`}
         </Script>
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

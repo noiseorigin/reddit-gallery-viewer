@@ -1,19 +1,35 @@
 import type { MetadataRoute } from 'next';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://reddit-gallery-viewer.vercel.app';
+import { SITE_URL } from '@/lib/site';
 
-  // 主要页面
+export default function sitemap(): MetadataRoute.Sitemap {
   const mainPages: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1.0,
     },
+    {
+      url: `${SITE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
   ];
 
-  // 热门 subreddit 页面
   const subreddits = [
     { name: 'photography', priority: 0.9 },
     { name: 'EarthPorn', priority: 0.9 },
@@ -30,12 +46,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const subredditPages: MetadataRoute.Sitemap = subreddits.map((subreddit) => ({
-    url: `${baseUrl}/?sub=${subreddit.name}`,
+    url: `${SITE_URL}/?sub=${subreddit.name}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
     priority: subreddit.priority,
   }));
 
-  // 合并所有页面
   return [...mainPages, ...subredditPages];
 }

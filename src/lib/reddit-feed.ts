@@ -6,6 +6,16 @@ export interface PopularSubredditItem {
   displayName: string;
 }
 
+export const FALLBACK_POPULAR_SUBREDDITS: PopularSubredditItem[] = [
+  { name: 'photography', displayName: '📸 Photography' },
+  { name: 'EarthPorn', displayName: '🌍 Nature' },
+  { name: 'CatsStandingUp', displayName: '🐱 Cats' },
+  { name: 'InteriorDesign', displayName: '🏠 Interior Design' },
+  { name: 'Art', displayName: '🎨 Art' },
+  { name: 'FoodPorn', displayName: '🍕 Food' },
+  { name: 'houseplants', displayName: '🌱 Houseplants' },
+];
+
 export interface RedditPopularListing {
   data?: {
     children?: Array<{
@@ -23,6 +33,8 @@ export interface RedditPopularListing {
 
 type FetchImplementation = typeof fetch;
 
+const RESERVED_SUBREDDIT_NAMES = new Set(['all', 'friends', 'mod', 'popular', 'users']);
+
 export function buildRedditFeedUrl(
   subreddit: string,
   time: string,
@@ -36,6 +48,10 @@ export function buildRedditFeedUrl(
 
 export function buildPopularSubredditsUrl(limit: number = 8): string {
   return `https://www.reddit.com/subreddits/popular.json?limit=${limit * 3}`;
+}
+
+export function buildExploreCommunitiesUrl(): string {
+  return 'https://www.reddit.com/explore/';
 }
 
 export async function fetchRedditJson<T>(
@@ -56,6 +72,26 @@ export async function fetchRedditJson<T>(
   }
 
   return response.json() as Promise<T>;
+}
+
+export async function fetchRedditText(
+  url: string,
+  fetchImplementation: FetchImplementation = fetch
+): Promise<string> {
+  const response = await fetchImplementation(url, {
+    headers: {
+      'User-Agent': REDDIT_USER_AGENT,
+      Accept: 'text/html,application/xhtml+xml',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.text();
 }
 
 export function extractPopularSubreddits(
@@ -80,4 +116,68 @@ export function extractPopularSubreddits(
         displayName: `🔥 ${item.display_name_prefixed!}`,
       })) ?? []
   );
+}
+
+export function extractExploreSubreddits(
+  html: string,
+  limit: number = 8
+): PopularSubredditItem[] {
+  const normalizedHtml = html
+    .replace(/\\u002F/gi, '/')
+    .replace(/\\\//g, '/')
+    .replace(/&amp;/g, '&');
+
+  const matches = normalizedHtml.matchAll(
+    /(?:https?:\/\/(?:www\.)?reddit\.com)?\/r\/([A-Za-z0-9][A-Za-z0-9_]{1,20})\b/g
+  );
+  const items: PopularSubredditItem[] = [];
+  const seen = new Set<string>();
+
+  for (const match of matches) {
+    const subredditName = match[1];
+    const normalizedName = subredditName.toLowerCase();
+
+    if (RESERVED_SUBREDDIT_NAMES.has(normalizedName) || seen.has(normalizedName)) {
+      continue;
+    }
+
+    seen.add(normalizedName);
+    items.push({
+      name: subredditName,
+      displayName: `🔥 r/${subredditName}`,
+    });
+
+    if (items.length >= limit) {
+      break;
+    }
+  }
+
+  return items;
+}
+
+export function mergePopularSubreddits(
+  limit: number,
+  ...lists: PopularSubredditItem[][]
+): PopularSubredditItem[] {
+  const merged: PopularSubredditItem[] = [];
+  const seen = new Set<string>();
+
+  for (const list of lists) {
+    for (const item of list) {
+      const normalizedName = item.name.toLowerCase();
+
+      if (seen.has(normalizedName)) {
+        continue;
+      }
+
+      seen.add(normalizedName);
+      merged.push(item);
+
+      if (merged.length >= limit) {
+        return merged;
+      }
+    }
+  }
+
+  return merged;
 }

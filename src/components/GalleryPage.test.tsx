@@ -229,4 +229,60 @@ describe('GalleryPage', () => {
 
     expect(screen.queryByText(/Failed to Load!/)).not.toBeInTheDocument();
   });
+
+  it('applies a quick view preset and refetches with its filters', async () => {
+    vi.mocked(fetchRedditAPI).mockResolvedValue({
+      data: {
+        children: [{ data: { id: '1', title: 'Preset image' } }],
+      },
+    } as never);
+
+    render(<GalleryPage />);
+
+    await waitFor(() => {
+      expect(fetchRedditAPI).toHaveBeenCalledWith(
+        buildApiUrl('photography', 'day', 'new')
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Nature picks/i }));
+
+    await waitFor(() => {
+      expect(fetchRedditAPI).toHaveBeenCalledWith(
+        buildApiUrl('EarthPorn', 'month', 'top')
+      );
+    });
+  });
+
+  it('shows recovery guidance when Reddit data fails to load', async () => {
+    vi.mocked(fetchRedditAPI).mockRejectedValue(new Error('HTTP 429'));
+
+    render(<GalleryPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Reddit is slow right now/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Suggested presets/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Report a loading issue/i })).toBeInTheDocument();
+  });
+
+  it('renders the value and content standards copy for the tool', async () => {
+    vi.mocked(fetchRedditAPI).mockResolvedValue({
+      data: {
+        children: [{ data: { id: '1', title: 'Preset image' } }],
+      },
+    } as never);
+
+    render(<GalleryPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Content standards/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Creative inspiration/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/filters restricted community lists, excludes NSFW image posts/i)
+    ).toBeInTheDocument();
+  });
 });
