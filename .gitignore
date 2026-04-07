@@ -21,6 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.playwright-mcp/
+mobile-emulated-earthporn.png
 
 # local env files
 .env

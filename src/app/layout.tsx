@@ -1,5 +1,6 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 
 const inter = Inter({
@@ -53,7 +54,12 @@ export const metadata: Metadata = {
     icon: '/rgv_logo.png',
     apple: '/rgv_logo.png',
   },
+};
+
+export const viewport: Viewport = {
   themeColor: '#FF4500',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -65,7 +71,6 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href="https://reddit-gallery-viewer.vercel.app/" />
 
         {/* Additional SEO Meta Tags */}
@@ -82,6 +87,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.reddit.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
 
         {/* JSON-LD Structured Data */}
         <script
@@ -135,22 +141,22 @@ export default function RootLayout({
         />
 
         {/* Google Analytics */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-SSS54C3THS"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-SSS54C3THS');
-            `,
-          }}
-        />
       </head>
-      <body className="bg-white text-gray-800">{children}</body>
+      <body className="bg-white text-gray-800">
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3491512248260741"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-SSS54C3THS"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-SSS54C3THS');`}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }

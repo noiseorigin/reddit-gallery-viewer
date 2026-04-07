@@ -107,6 +107,11 @@ git push origin main  # Auto-deploys to Vercel
 None required for basic functionality. Optional:
 - `NEXT_PUBLIC_GA_ID` - Override Google Analytics ID
 
+### Analytics & Ads
+
+- Google Analytics is loaded from `src/app/layout.tsx`
+- Google AdSense is loaded globally from `src/app/layout.tsx` with publisher ID `ca-pub-3491512248260741`
+
 ## 📊 Browser Support
 
 - Chrome/Edge 90+
