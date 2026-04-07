@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   buildApiUrl,
@@ -69,9 +69,12 @@ export function GalleryPage() {
     Array<{ name: string; displayName: string }>
   >([]);
   const [shareMessage, setShareMessage] = useState("");
+  const requestIdRef = useRef(0);
 
   // Load popular subreddits on mount
   useEffect(() => {
+    const requestedSubreddit = parseSubredditName(searchParams.get('sub') ?? '');
+
     // Log mobile optimizations on first load
     if (typeof window !== 'undefined') {
       logMobileOptimizations();
@@ -83,20 +86,24 @@ export function GalleryPage() {
       const cached = readCachedPopularSubreddits();
       if (cached) {
         setSubreddits(cached);
-        setCurrentSubreddit(cached[0].name);
+        if (!requestedSubreddit) {
+          setCurrentSubreddit(cached[0].name);
+        }
         return;
       }
 
       const popular = await loadPopularSubreddits();
       if (popular) {
         setSubreddits(popular);
-        setCurrentSubreddit(popular[0].name);
+        if (!requestedSubreddit) {
+          setCurrentSubreddit(popular[0].name);
+        }
         storePopularSubreddits(popular);
       }
     };
 
     loadPopular();
-  }, []);
+  }, [searchParams]);
 
   // Load URL parameters
   useEffect(() => {
@@ -150,6 +157,9 @@ export function GalleryPage() {
 
   // Fetch images
   const fetchImages = useCallback(async () => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+
     setIsLoading(true);
     setError(null);
 
@@ -157,15 +167,16 @@ export function GalleryPage() {
       const url = buildApiUrl(currentSubreddit, currentTimeFilter.name, currentSort.name);
       const data: RedditResponse = await fetchRedditAPI(url);
 
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+
       const filteredPosts = filterImagePosts(
         data.data.children.map((child) => child.data),
         40
       );
 
       if (filteredPosts.length === 0) {
-        setError(
-          `No image posts found in /r/${currentSubreddit} (${currentSort.displayName}).`
-        );
         setPosts([]);
       } else {
         setPosts(filteredPosts);
@@ -184,10 +195,16 @@ export function GalleryPage() {
       url_obj.searchParams.set("sort", currentSort.name);
       window.history.replaceState(null, "", url_obj.toString());
     } catch (err) {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+
       setError("Failed to load images. Please try again later.");
       setPosts([]);
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [currentSubreddit, currentTimeFilter, currentSort, subreddits]);
 

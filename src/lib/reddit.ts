@@ -20,18 +20,6 @@ export interface RedditResponse {
   };
 }
 
-// Detect if running on mobile device
-const isMobileDevice = () => {
-  if (typeof window === 'undefined') return false;
-  return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-const MOBILE_USER_AGENT =
-  "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1";
-
 export async function fetchRedditAPI(url: string): Promise<any> {
   const cached = apiCache.get(url);
   if (cached) {
@@ -39,19 +27,8 @@ export async function fetchRedditAPI(url: string): Promise<any> {
   }
 
   try {
-    // Use appropriate User-Agent based on device
-    const userAgent = isMobileDevice() ? MOBILE_USER_AGENT : USER_AGENT;
-
     const response = await fetch(url, {
-      headers: {
-        "User-Agent": userAgent,
-        Accept: "application/json",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-      mode: "cors",
-      credentials: "omit",
-      // Add timeout signal
-      signal: AbortSignal.timeout(15000), // 15 second timeout for mobile
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
@@ -73,9 +50,15 @@ export function buildApiUrl(
   sort: string = "top",
   limit = 100
 ): string {
-  const sortPath = sort === "top" ? "top" : sort;
-  const timeParam = ["top", "controversial"].includes(sort) ? `&t=${time}` : "";
-  return `https://www.reddit.com/r/${subreddit}/${sortPath}/.json?${timeParam}&limit=${limit}`;
+  const params = new URLSearchParams({
+    kind: "feed",
+    subreddit,
+    time,
+    sort,
+    limit: String(limit),
+  });
+
+  return `/api/reddit-feed?${params.toString()}`;
 }
 
 export function parseSubredditName(input: string): string | null {
@@ -188,36 +171,19 @@ export async function loadPopularSubreddits(
   limit: number = 8
 ): Promise<Array<{ name: string; displayName: string }> | null> {
   try {
-    const response = await fetch(
-      `https://www.reddit.com/subreddits/popular.json?limit=${limit * 3}`,
-      {
-        headers: {
-          "User-Agent": USER_AGENT,
-        },
-      }
-    );
+    const response = await fetch(`/api/reddit-feed?kind=popular&limit=${limit}`, {
+      signal: AbortSignal.timeout(15000),
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const json = await response.json();
-    const items =
-      json?.data?.children
-        ?.map((child: any) => child?.data)
-        ?.filter(
-          (data: any) =>
-            data &&
-            !data.over18 &&
-            !data.quarantine &&
-            !data.hide_ads &&
-            !data.restrict_commenting
-        )
-        ?.slice(0, limit)
-        ?.map((data: any) => ({
-          name: data.display_name,
-          displayName: `🔥 ${data.display_name_prefixed}`,
-        })) || [];
+    const json = (await response.json()) as {
+      items?: Array<{ name: string; displayName: string }>;
+    };
+
+    const items = json.items ?? [];
 
     return items.length > 0 ? items : null;
   } catch (error) {
