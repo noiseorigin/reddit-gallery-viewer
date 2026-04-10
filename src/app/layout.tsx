@@ -77,6 +77,7 @@ export default function RootLayout({
         <meta name="author" content={SITE_NAME} />
         <meta name="distribution" content="global" />
         <meta name="rating" content="general" />
+        <meta name="adsubly-verification" content="b77d720abdb6bad5ffc64fba5a713916" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
